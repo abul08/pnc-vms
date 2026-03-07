@@ -1,0 +1,37 @@
+import type { Metadata } from 'next'
+import './globals.css'
+import Navbar from '@/components/Navbar'
+import { Poppins, Geist } from 'next/font/google'
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
+const poppins = Poppins({
+    subsets: ['latin'],
+    weight: ['400', '500', '600', '700', '800', '900'],
+    variable: '--font-poppins',
+    display: 'swap',
+})
+
+export const metadata: Metadata = {
+    title: 'Voter Management System',
+    description: 'Election Day Voter Management System',
+}
+
+export default function RootLayout({
+    children,
+}: {
+    children: React.ReactNode
+}) {
+    return (
+        <html lang="en" className={cn("font-sans", geist.variable)}>
+            <body className={`${poppins.className} antialiased min-h-screen bg-slate-50 text-slate-900 flex flex-col`}>
+                <Navbar />
+                <main className="flex-1 pb-16 sm:pb-0">
+                    {children}
+                </main>
+            </body>
+        </html>
+    )
+}
+
