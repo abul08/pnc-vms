@@ -8,12 +8,13 @@ import Link from "next/link";
 export const revalidate = 60; // Revalidate every minute for public dashboard
 
 export default async function Home() {
-    const supabase = await createClient();
-
     let totalCount = 0;
     let votedCount = 0;
+    let error = false;
 
     try {
+        const supabase = await createClient();
+
         const { count: tc, error: tErr } = await supabase
             .from("voters")
             .select("*", { count: "exact", head: true });
@@ -26,7 +27,14 @@ export default async function Home() {
             .eq("vote_status", true);
 
         if (!vErr) votedCount = vc || 0;
-    } catch (e) { }
+        if (tErr || vErr) {
+            console.error("Database mismatch or error:", tErr || vErr);
+            error = true;
+        }
+    } catch (e) {
+        console.error("Home page data fetch failed:", e);
+        error = true;
+    }
 
     const percentage = totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0;
 
