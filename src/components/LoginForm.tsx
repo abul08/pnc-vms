@@ -18,7 +18,7 @@ export default function LoginForm() {
     );
 
     return (
-        <form action={formAction} className="space-y-4">
+        <form action={formAction} className="space-y-4 p-2">
             <div className="space-y-1.5">
                 <label className="text-sm font-medium" htmlFor="username">Username</label>
                 <Input id="username" name="username" type="text" required disabled={isPending} placeholder="admin" />

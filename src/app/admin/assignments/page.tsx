@@ -30,20 +30,22 @@ export default async function AssignmentsAdminPage() {
         .order("created_at", { ascending: false });
 
     return (
-        <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between gap-3">
-                <h1 className="text-xl font-bold text-slate-900">Voter Assignments</h1>
-                <Link href="/admin">
-                    <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-700 gap-1">
-                        Back <ArrowRight className="h-4 w-4" />
-                    </Button>
-                </Link>
+        <div className="animate-reveal">
+            <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4">
+                <div className="flex items-center justify-between gap-3 pt-4 mb-4">
+                    <h1 className="text-xl font-bold text-slate-900">Voter Assignments</h1>
+                    <Link href="/admin">
+                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-slate-700 gap-1">
+                            Back <ArrowRight className="h-4 w-4" />
+                        </Button>
+                    </Link>
+                </div>
+                <AssignmentManager
+                    voters={voters ?? []}
+                    users={users ?? []}
+                    assignments={(assignments ?? []) as any[]}
+                />
             </div>
-            <AssignmentManager
-                voters={voters ?? []}
-                users={users ?? []}
-                assignments={(assignments ?? []) as any[]}
-            />
         </div>
     );
 }

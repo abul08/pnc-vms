@@ -86,7 +86,7 @@ export default async function Home() {
                     <div className="space-y-4 pt-4">
                         <div className="flex justify-between items-end mb-1">
                             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Turnout Progress</h3>
-                            <span className="text-3xl font-black text-foreground italic">{percentage}%</span>
+                            <span className="text-3xl font-black text-foreground italic tabular-nums">{percentage}%</span>
                         </div>
                         <Progress value={percentage} className="h-10 rounded-xl shadow-inner border bg-muted" />
                         <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">

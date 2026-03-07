@@ -1,0 +1,96 @@
+"use client";
+
+import { useTransition } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import { LayoutDashboard, Monitor, Vote, Users } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+
+interface NavItemProps {
+    href: string;
+    icon: any;
+    label: string;
+    isActive: boolean;
+}
+
+function MobileNavItem({ href, icon: Icon, label, isActive }: NavItemProps) {
+    const router = useRouter();
+    const [isPending, startTransition] = useTransition();
+
+    const handleClick = (e: React.MouseEvent) => {
+        if (isActive || isPending) return;
+        e.preventDefault();
+        startTransition(() => {
+            router.push(href);
+        });
+    };
+
+    return (
+        <button
+            onClick={handleClick}
+            disabled={isPending}
+            className={cn(
+                "flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-all relative",
+                isActive ? "text-primary bg-primary/5" : "text-muted-foreground hover:text-primary hover:bg-primary/5"
+            )}
+        >
+            {isPending ? (
+                <>
+                    <Skeleton className="w-5 h-5 rounded-full bg-primary/20" />
+                    <Skeleton className="w-8 h-2 mt-1 bg-primary/20" />
+                </>
+            ) : (
+                <>
+                    <Icon className={cn("w-5 h-5 transition-transform", isActive && "scale-110")} />
+                    <span className="text-[10px] font-semibold">{label}</span>
+                </>
+            )}
+
+            {isActive && !isPending && (
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-primary animate-reveal" />
+            )}
+        </button>
+    );
+}
+
+export function MobileNav({ role }: { role: string }) {
+    const pathname = usePathname();
+
+    const checkActive = (path: string) => {
+        if (path === '/admin') {
+            return pathname === '/admin';
+        }
+        return pathname.startsWith(path);
+    };
+
+    const isAdmin = role === 'admin';
+    const isManager = role === 'manager';
+    const isMarker = role === 'marker';
+
+    if (!isAdmin && !isManager && !isMarker) return null;
+
+    return (
+        <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t flex safe-bottom">
+            {isAdmin && (
+                <>
+                    <MobileNavItem href="/admin" icon={LayoutDashboard} label="Home" isActive={checkActive('/admin')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem href="/admin/users" icon={Users} label="Users" isActive={checkActive('/admin/users')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem href="/admin/voters" icon={Vote} label="Voters" isActive={checkActive('/admin/voters')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem href="/admin/assignments" icon={Monitor} label="Assign" isActive={checkActive('/admin/assignments')} />
+                </>
+            )}
+
+            {isManager && (
+                <MobileNavItem href="/manager" icon={Monitor} label="Patch View" isActive={checkActive('/manager')} />
+            )}
+
+            {isMarker && (
+                <MobileNavItem href="/marker" icon={Vote} label="My Voters" isActive={checkActive('/marker')} />
+            )}
+        </nav>
+    );
+}

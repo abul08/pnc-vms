@@ -1,13 +1,25 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { assignVoterAction, unassignVoterAction } from "@/app/actions/assignments";
+import { assignVoterAction, unassignVoterAction, resetAllAssignmentsAction } from "@/app/actions/assignments";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Loader2, UserPlus, Trash2, User } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
@@ -67,7 +79,7 @@ export function AssignmentManager({ voters, users, assignments }: {
                                     className={`w-full text-left px-3 py-2.5 text-sm transition-colors hover:bg-muted ${selectedVoter?.id === v.id ? "bg-primary/10 text-primary font-semibold ring-1 ring-inset ring-primary/20" : ""}`}>
                                     <div className="flex justify-between items-center">
                                         <span className="truncate">{v.name}</span>
-                                        <span className="text-[10px] font-mono text-muted-foreground ml-2 shrink-0">{v.national_id}</span>
+                                        <span className="text-[10px] font-mono text-muted-foreground ml-2 shrink-0 tabular-nums">{v.national_id}</span>
                                     </div>
                                 </button>
                             ))}
@@ -119,7 +131,29 @@ export function AssignmentManager({ voters, users, assignments }: {
             <Card className="shadow-sm border-muted">
                 <CardHeader className="pb-3 px-4 flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Assignments</CardTitle>
-                    <Badge variant="outline" className="text-[10px]">{assignments.length}</Badge>
+                    <div className="flex items-center gap-2">
+                        <AlertDialog>
+                            <AlertDialogTrigger render={<Button size="sm" variant="ghost" className="text-[10px] h-6 px-2 text-destructive hover:bg-destructive/10">Reset All</Button>} />
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Reset all assignments?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will clear all voter assignments for markers and managers. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={async () => {
+                                        const res = await resetAllAssignmentsAction();
+                                        if (res.error) alert(res.error);
+                                    }} className="bg-destructive hover:bg-destructive/90">
+                                        Reset All
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        <Badge variant="outline" className="text-[10px] tabular-nums">{assignments.length}</Badge>
+                    </div>
                 </CardHeader>
                 <CardContent className="p-0">
                     <div className="overflow-y-auto max-h-[600px]">
@@ -132,38 +166,41 @@ export function AssignmentManager({ voters, users, assignments }: {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {assignments.map((a: any) => (
-                                    <TableRow key={a.id} className="text-sm">
-                                        <TableCell className="py-2.5">
-                                            <p className="font-semibold leading-none mb-1">{a.voters?.name}</p>
-                                            <p className="text-[10px] text-muted-foreground font-mono">{a.voters?.national_id}</p>
-                                        </TableCell>
-                                        <TableCell className="py-2.5">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs font-medium">{a.profiles?.full_name}</span>
-                                                <Badge variant="outline" className="text-[8px] h-3 px-1 w-fit mt-1 uppercase opacity-70">
-                                                    {a.type}
-                                                </Badge>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="py-2.5 text-right">
-                                            <form action={unassignAction}>
-                                                <input type="hidden" name="id" value={a.id} />
-                                                <Button variant="ghost" size="icon" type="submit" disabled={unassignPending}
-                                                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                                    onClick={e => { if (!confirm("Remove this assignment?")) e.preventDefault(); }}>
-                                                    {unassignPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                                                </Button>
-                                            </form>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                                {assignments.length === 0 && (
-                                    <TableRow>
-                                        <TableCell colSpan={3} className="h-48 text-center text-muted-foreground text-xs italic">
-                                            No active assignments found.
-                                        </TableCell>
-                                    </TableRow>
+                                {assignments.length > 0 ? (
+                                    assignments.map((a: any) => (
+                                        <TableRow key={a.id} className="text-sm">
+                                            <TableCell className="py-2.5">
+                                                <p className="font-semibold leading-none mb-1">{a.voters?.name}</p>
+                                                <p className="text-[10px] text-muted-foreground font-mono tabular-nums">{a.voters?.national_id}</p>
+                                            </TableCell>
+                                            <TableCell className="py-2.5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-medium">{a.profiles?.full_name}</span>
+                                                    <Badge variant="outline" className="text-[8px] h-3 px-1 w-fit mt-1 uppercase opacity-70">
+                                                        {a.type}
+                                                    </Badge>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="py-2.5 text-right">
+                                                <form action={unassignAction}>
+                                                    <input type="hidden" name="id" value={a.id} />
+                                                    <Button variant="ghost" size="icon" type="submit" disabled={unassignPending}
+                                                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                                                        onClick={e => { if (!confirm("Remove this assignment?")) e.preventDefault(); }}>
+                                                        {unassignPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                                    </Button>
+                                                </form>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    Array.from({ length: 3 }).map((_, i) => (
+                                        <TableRow key={i}>
+                                            <TableCell><Skeleton className="h-10 w-32 bg-slate-50" /></TableCell>
+                                            <TableCell><Skeleton className="h-10 w-24 bg-slate-50" /></TableCell>
+                                            <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto bg-slate-50" /></TableCell>
+                                        </TableRow>
+                                    ))
                                 )}
                             </TableBody>
                         </Table>

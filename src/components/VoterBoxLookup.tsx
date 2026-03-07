@@ -101,7 +101,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                                             <p className="text-sm font-medium truncate">{v.name}</p>
                                             <p className="text-xs text-muted-foreground font-mono">{v.national_id}</p>
                                         </div>
-                                        <span className="ml-3 text-base font-black text-primary shrink-0">{v.registered_box || "—"}</span>
+                                        <span className="ml-3 text-base font-black text-primary shrink-0 tabular-nums">{v.registered_box || "—"}</span>
                                     </button>
                                 ))}
                             </div>
@@ -121,7 +121,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                             <div className="h-1 w-full bg-linear-to-r from-primary to-green-400" />
                             <div className="flex flex-col items-center py-5 border-b">
                                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-1">Registered Box</p>
-                                <p className="text-6xl font-black text-primary leading-none">{selected.registered_box || "—"}</p>
+                                <p className="text-6xl font-black text-primary leading-none tabular-nums">{selected.registered_box || "—"}</p>
                             </div>
                             <div className="flex divide-x">
                                 <div className="flex-1 px-4 py-3">
@@ -130,7 +130,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                                 </div>
                                 <div className="flex-1 px-4 py-3">
                                     <p className="text-xs text-muted-foreground mb-0.5">National ID</p>
-                                    <p className="font-mono text-sm">{selected.national_id}</p>
+                                    <p className="font-mono text-sm tabular-nums">{selected.national_id}</p>
                                 </div>
                             </div>
                         </div>

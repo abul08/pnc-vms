@@ -19,7 +19,7 @@ export default async function UsersAdminPage() {
         .order("created_at", { ascending: false });
 
     return (
-        <div className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4">
+        <div className="max-w-4xl mx-auto p-3 sm:p-6 space-y-4 pt-4 animate-reveal">
             <div className="flex items-center justify-between gap-3">
                 <h1 className="text-xl font-bold text-slate-900">User Management</h1>
                 <Link href="/admin">

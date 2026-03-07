@@ -67,3 +67,18 @@ export async function deleteVoterAction(formData: FormData) {
         return { error: e.message };
     }
 }
+
+export async function deleteAllVotersAction() {
+    try {
+        const supabase = await assertAdmin();
+        // Delete all voters — requires RLS bypass or appropriate policy
+        const { error } = await supabase.from("voters").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        if (error) return { error: error.message };
+
+        revalidatePath("/admin/voters");
+        revalidatePath("/");
+        return { success: true, message: "Voter list cleared." };
+    } catch (e: any) {
+        return { error: e.message };
+    }
+}

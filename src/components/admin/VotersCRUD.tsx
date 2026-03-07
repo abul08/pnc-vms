@@ -1,10 +1,29 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { createVoterAction, updateVoterAction, deleteVoterAction } from "@/app/actions/voterCrud";
+import { createVoterAction, updateVoterAction, deleteVoterAction, deleteAllVotersAction } from "@/app/actions/voterCrud";
+import { resetAllVotingStatusAction } from "@/app/actions/voter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog";
 import {
     Table,
     TableBody,
@@ -21,7 +40,9 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Loader2, Plus, Search, Trash2, Edit2, X, Check } from "lucide-react";
+import { Loader2, Plus, Search, Trash2, Edit2, X, Info, User, Home, Hash, MapPin, Phone, Fingerprint, ListChecks } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
@@ -36,85 +57,187 @@ const FIELDS = [
     { name: "present_address", label: "Address" },
 ] as const;
 
+function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boolean; onOpenChange: (open: boolean) => void }) {
+    if (!voter) return null;
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <DialogHeader>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="bg-primary/10 p-2.5 rounded-xl">
+                            <User className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                            <DialogTitle className="text-xl font-bold">{voter.name}</DialogTitle>
+                            <DialogDescription className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                                Voter Details
+                            </DialogDescription>
+                        </div>
+                    </div>
+                </DialogHeader>
+
+                <div className="grid grid-cols-1 gap-4 py-4">
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                        {[
+                            { icon: Fingerprint, label: "National ID", value: voter.national_id },
+                            { icon: Home, label: "House", value: voter.house_name },
+                            { icon: MapPin, label: "Present Address", value: voter.present_address },
+                            { icon: ListChecks, label: "Constituency", value: voter.consit },
+                            { icon: Hash, label: "Registered Box", value: voter.registered_box, highlight: true },
+                            { icon: Phone, label: "Contact", value: voter.contact },
+                            { icon: User, label: "Sex", value: voter.sex },
+                        ].map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between gap-4">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                    <item.icon className="w-4 h-4 text-slate-400 shrink-0" />
+                                    <span className="text-xs font-medium text-slate-500">{item.label}</span>
+                                </div>
+                                <span className={cn(
+                                    "text-sm font-semibold truncate",
+                                    item.highlight ? "text-primary bg-primary/10 px-2 py-0.5 rounded-md" : "text-slate-900"
+                                )}>
+                                    {item.value || "—"}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                        <div className="space-y-0.5">
+                            <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Voting Status</p>
+                            <p className="text-sm font-bold text-slate-900">{voter.vote_status ? "Successfully Voted" : "Pending Participation"}</p>
+                        </div>
+                        <Badge variant={voter.vote_status ? "default" : "secondary"} className="h-6">
+                            {voter.vote_status ? "Voted" : "Pending"}
+                        </Badge>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function VoterFormFields({ defaults }: { defaults?: any }) {
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {FIELDS.map(f => (
                 <div key={f.name} className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">{f.label}{(f as any).required ? " *" : ""}</label>
-                    <Input name={f.name} defaultValue={defaults?.[f.name] ?? ""} required={(f as any).required} className="h-9 text-sm" />
+                    <Input name={f.name} defaultValue={defaults?.[f.name] ?? ""} required={(f as any).required} className="h-9 text-sm rounded-xl" />
                 </div>
             ))}
         </div>
     );
 }
 
-function VoterRow({ voter, index }: { voter: any; index: number }) {
-    const [editing, setEditing] = useState(false);
-    const [editState, editAction, editPending] = useActionState(
-        async (_: typeof initialState, fd: FormData) => {
-            const r = await updateVoterAction(fd);
-            if (r?.success) setEditing(false);
-            return { ...initialState, ...r };
-        },
-        initialState
-    );
+function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit: (v: any) => void }) {
+    const [detailOpen, setDetailOpen] = useState(false);
     const [delState, delAction, delPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await deleteVoterAction(fd)) }),
         initialState
     );
 
-    if (editing) {
-        return (
-            <TableRow className="bg-muted/30">
-                <TableCell colSpan={8} className="p-4">
-                    <form action={editAction} className="space-y-4">
-                        <input type="hidden" name="id" value={voter.id} />
-                        <VoterFormFields defaults={voter} />
-                        {editState?.error && <p className="text-destructive text-xs">{editState.error}</p>}
-                        <div className="flex gap-2">
-                            <Button type="submit" disabled={editPending} size="sm">
-                                {editPending && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
-                                Save Changes
+    return (
+        <>
+            <TableRow
+                className="text-sm cursor-pointer hover:bg-slate-50/80 group transition-colors"
+                onClick={() => setDetailOpen(true)}
+            >
+                <TableCell className="text-muted-foreground font-mono text-[10px] tabular-nums hidden sm:table-cell pl-6">{index}</TableCell>
+                <TableCell className="py-4">
+                    <div className="flex flex-col">
+                        <span className="font-bold text-slate-900 group-hover:text-primary transition-colors">{voter.name}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono tabular-nums md:hidden">{voter.national_id}</span>
+                    </div>
+                </TableCell>
+                <TableCell className="font-mono text-xs tabular-nums hidden md:table-cell">{voter.national_id || "—"}</TableCell>
+                <TableCell className="text-slate-600 max-w-[150px] truncate">{voter.house_name || "—"}</TableCell>
+                <TableCell className="hidden lg:table-cell">{voter.sex || "—"}</TableCell>
+                <TableCell className="font-bold text-primary tabular-nums hidden lg:table-cell">{voter.registered_box || "—"}</TableCell>
+                <TableCell>
+                    <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[10px] h-5 px-1.5 sm:px-2">
+                        {voter.vote_status ? "Voted" : "Pending"}
+                    </Badge>
+                </TableCell>
+                <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEdit(voter)}
+                            className="h-8 w-8 rounded-full hover:bg-primary/5 hover:text-primary transition-colors"
+                            title="Edit Voter"
+                        >
+                            <Edit2 className="w-3.5 h-3.5" />
+                        </Button>
+                        <form action={delAction}>
+                            <input type="hidden" name="id" value={voter.id} />
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                type="submit"
+                                disabled={delPending}
+                                className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/5 transition-colors"
+                                onClick={e => { if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}
+                                title="Delete Voter"
+                            >
+                                {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                             </Button>
-                            <Button type="button" variant="ghost" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </TableCell>
             </TableRow>
-        );
-    }
+            <VoterDetailModal voter={voter} open={detailOpen} onOpenChange={setDetailOpen} />
+        </>
+    );
+}
+
+function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => void }) {
+    const [detailOpen, setDetailOpen] = useState(false);
+    const [delState, delAction, delPending] = useActionState(
+        async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await deleteVoterAction(fd)) }),
+        initialState
+    );
 
     return (
-        <TableRow className="text-sm">
-            <TableCell className="text-muted-foreground font-mono text-[10px]">{index}</TableCell>
-            <TableCell className="font-medium">{voter.name}</TableCell>
-            <TableCell className="font-mono text-xs">{voter.national_id || "—"}</TableCell>
-            <TableCell>{voter.house_name || "—"}</TableCell>
-            <TableCell>{voter.sex || "—"}</TableCell>
-            <TableCell className="font-bold text-primary">{voter.registered_box || "—"}</TableCell>
-            <TableCell>
-                <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[10px] h-5">
-                    {voter.vote_status ? "Voted" : "Pending"}
-                </Badge>
-            </TableCell>
-            <TableCell className="text-right">
-                <div className="flex items-center justify-end gap-1">
-                    {delState?.error && <span className="text-destructive text-[10px] mr-2">{delState.error}</span>}
-                    <Button variant="ghost" size="icon" onClick={() => setEditing(true)} className="h-8 w-8">
+        <div
+            className="p-4 bg-white border-b border-slate-100 last:border-0 active:bg-slate-50 transition-colors"
+            onClick={() => setDetailOpen(true)}
+        >
+            <div className="flex justify-between items-start gap-3">
+                <div className="space-y-1 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <p className="font-bold text-slate-900 truncate">{voter.name}</p>
+                        <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[9px] h-4 px-1 shrink-0 uppercase tracking-tighter">
+                            {voter.vote_status ? "Voted" : "Pending"}
+                        </Badge>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                        <Home className="w-3 h-3 shrink-0" />
+                        <p className="text-xs truncate">{voter.house_name || "No House Name"}</p>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-slate-400">
+                        <Fingerprint className="w-3 h-3 shrink-0" />
+                        <p className="text-[10px] font-mono tabular-nums">{voter.national_id || "—"}</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
+                    <Button variant="ghost" size="icon" onClick={() => onEdit(voter)} className="h-9 w-9 rounded-full bg-slate-50 text-slate-600">
                         <Edit2 className="w-3.5 h-3.5" />
                     </Button>
                     <form action={delAction}>
                         <input type="hidden" name="id" value={voter.id} />
                         <Button variant="ghost" size="icon" type="submit" disabled={delPending}
-                            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            className="h-9 w-9 rounded-full bg-slate-50 text-destructive"
                             onClick={e => { if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}>
                             {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                         </Button>
                     </form>
                 </div>
-            </TableCell>
-        </TableRow>
+            </div>
+            <VoterDetailModal voter={voter} open={detailOpen} onOpenChange={setDetailOpen} />
+        </div>
     );
 }
 
@@ -127,6 +250,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
 }) {
     const [showAdd, setShowAdd] = useState(false);
     const [search, setSearch] = useState("");
+    const [editingVoter, setEditingVoter] = useState<any>(null);
 
     const [addState, addAction, addPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
@@ -136,93 +260,281 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
         },
         initialState
     );
+    const [editState, editAction, editPending] = useActionState(
+        async (_: typeof initialState, fd: FormData) => {
+            const r = await updateVoterAction(fd);
+            if (r?.success) {
+                setShowAdd(false);
+                setEditingVoter(null);
+            }
+            return { ...initialState, ...r };
+        },
+        initialState
+    );
 
     const filtered = initialVoters.filter(v =>
         !search || v.name?.toLowerCase().includes(search.toLowerCase()) || v.national_id?.includes(search)
     );
 
+    const handleEdit = (voter: any) => {
+        setEditingVoter(voter);
+        setShowAdd(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    const handleAddClick = () => {
+        if (showAdd && editingVoter) {
+            setEditingVoter(null);
+        } else {
+            setShowAdd(!showAdd);
+            setEditingVoter(null);
+        }
+    };
+
     return (
-        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 border-b">
-                <div className="relative w-full sm:w-80">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                        placeholder="Search by name or ID…"
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
-                        className="pl-9 h-9"
-                    />
+        <div className="rounded-2xl border bg-white shadow-sm overflow-hidden border-slate-100 min-h-[400px]">
+            {/* Top Action Bar */}
+            <div className="p-4 space-y-4 border-b border-slate-100 bg-slate-50/20">
+                <div className="flex flex-col md:flex-row gap-4 justify-between md:items-center">
+                    <div className="relative flex-1 group">
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                        <Input
+                            placeholder="Find voters by name or ID..."
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            className="h-11 pl-10 rounded-xl bg-white border-slate-200 focus:ring-primary/10 shadow-sm"
+                        />
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <div className="grid grid-cols-2 gap-2 flex-1 md:flex-none">
+                            <AlertDialog>
+                                <AlertDialogTrigger render={
+                                    <Button size="sm" variant="outline" className="h-10 px-4 rounded-xl text-orange-600 border-orange-100 hover:bg-orange-50 font-bold text-[10px] uppercase tracking-wider">
+                                        Reset Voting
+                                    </Button>
+                                } />
+                                <AlertDialogContent className="rounded-2xl">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Reset all voting statuses?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will mark all voters as "Pending". This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={async () => {
+                                            const res = await resetAllVotingStatusAction();
+                                            if (res.error) alert(res.error);
+                                        }} className="bg-orange-600 hover:bg-orange-700 rounded-xl font-bold">
+                                            Reset All
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+
+                            <AlertDialog>
+                                <AlertDialogTrigger render={
+                                    <Button size="sm" variant="outline" className="h-10 px-4 rounded-xl text-destructive border-destructive/5 hover:bg-destructive/5 font-bold text-[10px] uppercase tracking-wider">
+                                        Delete All
+                                    </Button>
+                                } />
+                                <AlertDialogContent className="border-destructive/20 rounded-2xl">
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle className="text-destructive font-black">PERMANENT WIPEOUT</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will PERMANENTLY delete all voter records. This is irreversible.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={async () => {
+                                            const res = await deleteAllVotersAction();
+                                            if (res.error) alert(res.error);
+                                        }} className="bg-destructive hover:bg-destructive/90 rounded-xl font-bold">
+                                            Confirm Delete
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+
+                        <Button
+                            onClick={handleAddClick}
+                            variant={showAdd ? "outline" : "default"}
+                            className="h-10 px-5 rounded-xl text-xs font-black shadow-lg shadow-primary/10 tracking-tight shrink-0 flex items-center gap-2"
+                        >
+                            {showAdd ? <X className="w-4 h-4" /> : <><Plus className="w-4 h-4" /> Add Voter</>}
+                        </Button>
+                    </div>
                 </div>
-                <Button size="sm" onClick={() => setShowAdd(v => !v)} variant={showAdd ? "outline" : "default"}>
-                    {showAdd ? <><X className="w-4 h-4 mr-2" /> Cancel</> : <><Plus className="w-4 h-4 mr-2" /> Add Voter</>}
-                </Button>
             </div>
 
+            {/* Registration/Edit Form */}
             {showAdd && (
-                <div className="p-4 bg-muted/20 border-b space-y-4">
-                    <h3 className="text-sm font-semibold">New Voter Registration</h3>
-                    <form action={addAction} className="space-y-4">
-                        <VoterFormFields />
-                        {addState?.error && <p className="text-destructive text-xs">{addState.error}</p>}
-                        <div className="flex gap-2">
-                            <Button type="submit" disabled={addPending} size="sm">
-                                {addPending && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
-                                Register Voter
+                <div className="p-6 bg-white border-b border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center gap-3">
+                            <div className="h-8 w-1.5 bg-primary rounded-full shadow-[0_0_10px_purple]" />
+                            <div>
+                                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                                    {editingVoter ? "Update Voter Record" : "New Voter Registration"}
+                                </h3>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{editingVoter ? `Editing ID: ${editingVoter.id}` : "Manual Entry Form"}</p>
+                            </div>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => { setShowAdd(false); setEditingVoter(null); }} className="rounded-full">
+                            <X className="w-4 h-4 text-slate-400" />
+                        </Button>
+                    </div>
+                    <form action={editingVoter ? editAction : addAction} className="space-y-6">
+                        {editingVoter && <input type="hidden" name="id" value={editingVoter.id} />}
+                        <VoterFormFields defaults={editingVoter} />
+                        {(addState?.error || editState?.error) && (
+                            <div className="p-4 bg-destructive/5 border border-destructive/10 rounded-2xl flex items-center gap-3 text-destructive">
+                                <Info className="w-4 h-4" />
+                                <p className="text-xs font-bold">{addState?.error || editState?.error}</p>
+                            </div>
+                        )}
+                        <div className="flex justify-end pt-2">
+                            <Button type="submit" disabled={addPending || editPending} className="h-12 px-10 rounded-xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                {(addPending || editPending) && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                                {editingVoter ? "Confirm Updates" : "Register Voter"}
                             </Button>
                         </div>
                     </form>
                 </div>
             )}
 
-            <div className="overflow-x-auto">
-                <Table>
-                    <TableHeader className="bg-muted/50">
-                        <TableRow>
-                            <TableHead className="w-10">#</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>National ID</TableHead>
-                            <TableHead>House</TableHead>
-                            <TableHead>Sex</TableHead>
-                            <TableHead>Box</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {filtered.map((v, i) => <VoterRow key={v.id} voter={v} index={i + 1 + (page - 1) * pageSize} />)}
-                        {filtered.length === 0 && (
-                            <TableRow>
-                                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
-                                    {search ? "No results found." : "Voter database is empty."}
-                                </TableCell>
+            {/* Content Area */}
+            <div className="relative">
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                    <Table>
+                        <TableHeader className="bg-slate-50/50">
+                            <TableRow className="hover:bg-transparent border-b-slate-100">
+                                <TableHead className="w-10 pl-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">#</TableHead>
+                                <TableHead className="pl-6 md:pl-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Identity Details</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">National ID</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Residential Info</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Sex</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Box</TableHead>
+                                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</TableHead>
+                                <TableHead className="text-right pr-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Control</TableHead>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {filtered.length > 0 ? (
+                                filtered.map((v, i) => (
+                                    <VoterRow
+                                        key={v.id}
+                                        voter={v}
+                                        index={i + 1 + (page - 1) * pageSize}
+                                        onEdit={handleEdit}
+                                    />
+                                ))
+                            ) : search ? (
+                                <TableRow>
+                                    <TableCell colSpan={8} className="h-[300px] text-center">
+                                        <div className="flex flex-col items-center justify-center gap-4 text-slate-300">
+                                            <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center">
+                                                <Search className="w-8 h-8 opacity-20" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="font-bold text-slate-900 tracking-tight">Zero matches for "{search}"</p>
+                                                <p className="text-xs">Try searching for a name, ID or national code.</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                Array.from({ length: 8 }).map((_, i) => (
+                                    <TableRow key={i} className="hover:bg-transparent">
+                                        <TableCell className="hidden sm:table-cell pl-6"><Skeleton className="h-4 w-4 rounded-sm bg-slate-50" /></TableCell>
+                                        <TableCell className="pl-6 sm:pl-4"><Skeleton className="h-5 w-48 rounded bg-slate-50" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24 rounded bg-slate-50" /></TableCell>
+                                        <TableCell><Skeleton className="h-4 w-32 rounded bg-slate-50" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-8 rounded bg-slate-50" /></TableCell>
+                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-10 rounded bg-slate-50" /></TableCell>
+                                        <TableCell><Skeleton className="h-5 w-16 rounded-full bg-slate-50" /></TableCell>
+                                        <TableCell className="text-right pr-6"><Skeleton className="h-9 w-20 ml-auto rounded-xl bg-slate-50" /></TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+
+                {/* Mobile Card List */}
+                <div className="md:hidden divide-y divide-slate-100 bg-white">
+                    {filtered.length > 0 ? (
+                        filtered.map((v) => (
+                            <VoterMobileCard
+                                key={v.id}
+                                voter={v}
+                                onEdit={handleEdit}
+                            />
+                        ))
+                    ) : search ? (
+                        <div className="p-20 text-center text-slate-300">
+                            <Search className="w-10 h-10 opacity-10 mx-auto mb-4" />
+                            <p className="text-sm font-bold tracking-tight text-slate-900">No results found</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Try another keyword</p>
+                        </div>
+                    ) : (
+                        Array.from({ length: 6 }).map((_, i) => (
+                            <div key={i} className="p-4 space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <Skeleton className="h-5 w-[60%] bg-slate-50" />
+                                    <Skeleton className="h-4 w-16 rounded-full bg-slate-50" />
+                                </div>
+                                <Skeleton className="h-4 w-[40%] bg-slate-50" />
+                                <div className="flex gap-2">
+                                    <Skeleton className="h-8 w-8 rounded-full bg-slate-50" />
+                                    <Skeleton className="h-8 w-8 rounded-full bg-slate-50" />
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
 
+            {/* Pagination Controls */}
             {totalPages > 1 && (
-                <div className="p-4 bg-muted/10 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
-                        Showing {((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)} of {total.toLocaleString()}
-                    </p>
+                <div className="px-6 py-6 bg-slate-50/50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="h-6 w-1 bg-slate-200 rounded-full hidden sm:block" />
+                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-[0.2em]">
+                            Displaying <span className="text-slate-900 font-black">{((page - 1) * pageSize) + 1}–{Math.min(page * pageSize, total)}</span> of <span className="text-slate-900 font-black">{total.toLocaleString()}</span>
+                        </p>
+                    </div>
                     <Pagination className="w-auto mx-0">
-                        <PaginationContent>
+                        <PaginationContent className="gap-2">
                             <PaginationItem>
                                 <PaginationPrevious
                                     href={page > 1 ? `?page=${page - 1}` : "#"}
                                     aria-disabled={page <= 1}
-                                    className={page <= 1 ? "pointer-events-none opacity-50" : ""}
+                                    className={cn(
+                                        "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",
+                                        page <= 1 ? "pointer-events-none opacity-40" : "bg-white hover:bg-slate-50 hover:shadow-md"
+                                    )}
                                 />
                             </PaginationItem>
-                            <PaginationItem className="hidden sm:block">
-                                <span className="px-4 text-xs font-medium">Page {page} of {totalPages}</span>
+                            <PaginationItem className="px-5">
+                                <span className="text-xs font-black text-slate-900 tracking-tighter">
+                                    <span className="text-primary">{page}</span>
+                                    <span className="text-slate-300 mx-1.5 inline-block -rotate-[20deg]">/</span>
+                                    {totalPages}
+                                </span>
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationNext
                                     href={page < totalPages ? `?page=${page + 1}` : "#"}
                                     aria-disabled={page >= totalPages}
-                                    className={page >= totalPages ? "pointer-events-none opacity-50" : ""}
+                                    className={cn(
+                                        "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",
+                                        page >= totalPages ? "pointer-events-none opacity-40" : "bg-white hover:bg-slate-50 hover:shadow-md"
+                                    )}
                                 />
                             </PaginationItem>
                         </PaginationContent>

@@ -42,3 +42,16 @@ export async function unassignVoterAction(formData: FormData) {
         return { error: e.message };
     }
 }
+
+export async function resetAllAssignmentsAction() {
+    try {
+        const supabase = await assertAdmin();
+        const { error } = await supabase.from("assignments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        if (error) return { error: error.message };
+
+        revalidatePath("/admin/assignments");
+        return { success: true, message: "All assignments cleared." };
+    } catch (e: any) {
+        return { error: e.message };
+    }
+}

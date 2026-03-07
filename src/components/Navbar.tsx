@@ -4,6 +4,7 @@ import { LogOut, LayoutDashboard, Monitor, Vote, Users } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { MobileNav } from './MobileNav';
 
 export default async function Navbar() {
     const supabase = await createClient();
@@ -59,45 +60,7 @@ export default async function Navbar() {
             </header>
 
             {/* Bottom tab bar — mobile only */}
-            {user && role && (
-                <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t flex">
-                    {role === 'admin' && (
-                        <>
-                            <Link href="/admin" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-primary">
-                                <LayoutDashboard className="w-5 h-5" />
-                                <span className="text-[10px] font-semibold">Home</span>
-                            </Link>
-                            <Separator orientation="vertical" className="h-auto my-3" />
-                            <Link href="/admin/users" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-muted-foreground">
-                                <Users className="w-5 h-5" />
-                                <span className="text-[10px] font-semibold">Users</span>
-                            </Link>
-                            <Separator orientation="vertical" className="h-auto my-3" />
-                            <Link href="/admin/voters" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-muted-foreground">
-                                <Vote className="w-5 h-5" />
-                                <span className="text-[10px] font-semibold">Voters</span>
-                            </Link>
-                            <Separator orientation="vertical" className="h-auto my-3" />
-                            <Link href="/admin/assignments" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-muted-foreground">
-                                <Monitor className="w-5 h-5" />
-                                <span className="text-[10px] font-semibold">Assign</span>
-                            </Link>
-                        </>
-                    )}
-                    {role === 'manager' && (
-                        <Link href="/manager" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-primary">
-                            <Monitor className="w-5 h-5" />
-                            <span className="text-[10px] font-semibold">Patch View</span>
-                        </Link>
-                    )}
-                    {role === 'marker' && (
-                        <Link href="/marker" className="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 text-primary">
-                            <Vote className="w-5 h-5" />
-                            <span className="text-[10px] font-semibold">My Voters</span>
-                        </Link>
-                    )}
-                </nav>
-            )}
+            {user && role && <MobileNav role={role} />}
         </>
     );
 }

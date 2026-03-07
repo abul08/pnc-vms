@@ -59,3 +59,24 @@ export async function revertVoterAction(voterId: string) {
     return { success: true };
 }
 
+export async function resetAllVotingStatusAction() {
+    try {
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Unauthorized");
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+        if (profile?.role !== "admin") throw new Error("Forbidden");
+
+        const { error } = await supabase.from("voters").update({ vote_status: false, voted_at: null }).neq("id", "00000000-0000-0000-0000-000000000000");
+        if (error) return { error: error.message };
+
+        revalidatePath("/marker");
+        revalidatePath("/manager");
+        revalidatePath("/admin/voters");
+        revalidatePath("/");
+        return { success: true, message: "All voting statuses reset." };
+    } catch (e: any) {
+        return { error: e.message };
+    }
+}
+

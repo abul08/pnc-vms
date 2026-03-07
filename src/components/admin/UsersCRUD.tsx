@@ -88,7 +88,7 @@ export function UsersCRUD({ initialUsers }: { initialUsers: any[] }) {
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{initialUsers.length} users</p>
+                <p className="text-sm text-muted-foreground tabular-nums">{initialUsers.length} users</p>
                 <Button variant={showCreate ? "outline" : "default"} size="sm" onClick={() => setShowCreate(v => !v)}>
                     {showCreate ? "Cancel" : "+ Add User"}
                 </Button>
