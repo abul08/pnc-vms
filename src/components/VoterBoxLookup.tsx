@@ -63,7 +63,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
             </Button>
 
             <Dialog open={open} onOpenChange={setOpen}>
-                <DialogContent className="max-w-md gap-4">
+                <DialogContent className="sm:max-w-md gap-4">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-primary" />

@@ -62,23 +62,23 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="sm:max-w-md">
                 <DialogHeader>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="bg-primary/10 p-2.5 rounded-xl">
                             <User className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                            <DialogTitle className="text-xl font-bold">{voter.name}</DialogTitle>
-                            <DialogDescription className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                            <DialogTitle className="text-lg font-bold">{voter.name}</DialogTitle>
+                            <DialogDescription className="text-xs uppercase tracking-normal text-muted-foreground font-semibold">
                                 Voter Details
                             </DialogDescription>
                         </div>
                     </div>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 gap-4 py-4">
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 space-y-4">
+                <div className="grid grid-cols-1 gap-4 pt-4">
+                    <div className="bg-slate-50/50 p-2  rounded-2xl border border-slate-100 space-y-4">
                         {[
                             { icon: Fingerprint, label: "National ID", value: voter.national_id },
                             { icon: Home, label: "House", value: voter.house_name },
@@ -88,14 +88,14 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                             { icon: Phone, label: "Contact", value: voter.contact },
                             { icon: User, label: "Sex", value: voter.sex },
                         ].map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-2.5 min-w-0">
-                                    <item.icon className="w-4 h-4 text-slate-400 shrink-0" />
-                                    <span className="text-xs font-medium text-slate-500">{item.label}</span>
+                            <div key={idx} className={cn("flex flex-col gap-1", idx > 0 && "mt-[-10px]")}>
+                                <div className="flex items-center gap-2">
+                                    <item.icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                                    <span className="text-[12px] uppercase font-medium text-slate-400">{item.label}</span>
                                 </div>
                                 <span className={cn(
-                                    "text-sm font-semibold truncate",
-                                    item.highlight ? "text-primary bg-primary/10 px-2 py-0.5 rounded-md" : "text-slate-900"
+                                    "text-sm font-medium",
+                                    item.highlight ? "text-primary bg-primary/10 px-1 rounded-lg w-fit mt-0.5" : "text-slate-800 ml-6"
                                 )}>
                                     {item.value || "—"}
                                 </span>
@@ -106,7 +106,6 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                     <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                         <div className="space-y-0.5">
                             <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Voting Status</p>
-                            <p className="text-sm font-bold text-slate-900">{voter.vote_status ? "Successfully Voted" : "Pending Participation"}</p>
                         </div>
                         <Badge variant={voter.vote_status ? "default" : "secondary"} className="h-6">
                             {voter.vote_status ? "Voted" : "Pending"}
@@ -202,13 +201,13 @@ function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => vo
 
     return (
         <div
-            className="p-4 bg-white border-b border-slate-100 last:border-0 active:bg-slate-50 transition-colors"
+            className="px-6 py-4 bg-white border-b border-slate-100 last:border-0 active:bg-slate-50 transition-colors"
             onClick={() => setDetailOpen(true)}
         >
             <div className="flex justify-between items-start gap-3">
                 <div className="space-y-1 flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                        <p className="font-bold text-slate-900 truncate">{voter.name}</p>
+                        <p className="font-medium text-slate-800 truncate">{voter.name}</p>
                         <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[9px] h-4 px-1 shrink-0 uppercase tracking-tighter">
                             {voter.vote_status ? "Voted" : "Pending"}
                         </Badge>
@@ -322,11 +321,11 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel className="rounded-xl font-medium">Cancel</AlertDialogCancel>
                                         <AlertDialogAction onClick={async () => {
                                             const res = await resetAllVotingStatusAction();
                                             if (res.error) alert(res.error);
-                                        }} className="bg-orange-600 hover:bg-orange-700 rounded-xl font-bold">
+                                        }} className="bg-orange-600 hover:bg-orange-700 rounded-xl font-medium">
                                             Reset All
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
@@ -341,17 +340,17 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                 } />
                                 <AlertDialogContent className="border-destructive/20 rounded-2xl">
                                     <AlertDialogHeader>
-                                        <AlertDialogTitle className="text-destructive font-black">PERMANENT WIPEOUT</AlertDialogTitle>
+                                        <AlertDialogTitle className="text-destructive font-bold">PERMANENT WIPEOUT</AlertDialogTitle>
                                         <AlertDialogDescription>
                                             This will PERMANENTLY delete all voter records. This is irreversible.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
-                                        <AlertDialogCancel className="rounded-xl font-bold">Cancel</AlertDialogCancel>
+                                        <AlertDialogCancel className="rounded-xl font-medium">Cancel</AlertDialogCancel>
                                         <AlertDialogAction onClick={async () => {
                                             const res = await deleteAllVotersAction();
                                             if (res.error) alert(res.error);
-                                        }} className="bg-destructive hover:bg-destructive/90 rounded-xl font-bold">
+                                        }} className="bg-destructive hover:bg-destructive/90 rounded-xl font-medium">
                                             Confirm Delete
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
@@ -362,7 +361,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                         <Button
                             onClick={handleAddClick}
                             variant={showAdd ? "outline" : "default"}
-                            className="h-10 px-5 rounded-xl text-xs font-black shadow-lg shadow-primary/10 tracking-tight shrink-0 flex items-center gap-2"
+                            className="h-10 px-5 rounded-xl text-xs font-medium shadow-lg shadow-primary/10 tracking-tight shrink-0 flex items-center gap-2"
                         >
                             {showAdd ? <X className="w-4 h-4" /> : <><Plus className="w-4 h-4" /> Add Voter</>}
                         </Button>
@@ -523,7 +522,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                             <PaginationItem className="px-5">
                                 <span className="text-xs font-black text-slate-900 tracking-tighter">
                                     <span className="text-primary">{page}</span>
-                                    <span className="text-slate-300 mx-1.5 inline-block -rotate-[20deg]">/</span>
+                                    <span className="text-slate-300 mx-1.5 inline-block -rotate-20">/</span>
                                     {totalPages}
                                 </span>
                             </PaginationItem>

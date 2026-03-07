@@ -47,7 +47,7 @@ export function AdminNavCard({ href, iconName, label, description, stat, color, 
         >
             {/* Shimmer overlay for pending state */}
             {isPending && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer" />
+                <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-shimmer" />
             )}
 
             <div className={cn("p-3 rounded-xl border shrink-0 transition-colors", isPending ? "bg-slate-100 border-slate-200" : color)}>
@@ -60,14 +60,14 @@ export function AdminNavCard({ href, iconName, label, description, stat, color, 
 
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <p className={cn("font-bold transition-colors", isPending ? "text-slate-400" : "text-slate-900 group-hover:text-primary-600")}>
+                    <div className={cn("font-bold transition-colors", isPending ? "text-slate-400" : "text-slate-900 group-hover:text-primary-600")}>
                         {label}
-                    </p>
+                    </div>
                     {isPending && <Skeleton className="h-4 w-12 rounded bg-primary/10" />}
                 </div>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <div className="text-xs text-slate-400 mt-0.5">
                     {isPending ? <Skeleton className="h-3 w-3/4 rounded bg-slate-100" /> : description}
-                </p>
+                </div>
                 <div className="mt-2">
                     {isPending ? (
                         <Skeleton className="h-5 w-16 rounded-full bg-slate-100" />

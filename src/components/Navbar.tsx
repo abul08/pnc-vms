@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
+import { headers } from 'next/headers';
 import { LogOut, LayoutDashboard, Monitor, Vote, Users } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,11 @@ import { Separator } from '@/components/ui/separator';
 import { MobileNav } from './MobileNav';
 
 export default async function Navbar() {
+    const headerList = await headers();
+    const pathname = headerList.get('x-pathname');
+
+    if (pathname === '/login') return null;
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
