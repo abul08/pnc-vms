@@ -84,7 +84,7 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
                         <p className="text-xs text-muted-foreground truncate max-w-[150px]">{voter.house_name || voter.present_address}</p>
                     )}
                     {voter.registered_box && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1 font-black tabular-nums border-primary/20 text-primary">
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 font-semibold tabular-nums border-primary/20 text-primary">
                             Box {voter.registered_box}
                         </Badge>
                     )}

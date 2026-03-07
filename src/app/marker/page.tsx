@@ -20,7 +20,7 @@ export default async function MarkerView() {
     return (
         <div className="max-w-md mx-auto p-4 pb-12 space-y-4">
             <div className="pt-2">
-                <h1 className="text-2xl font-bold text-slate-900">My Voters</h1>
+                <h1 className="text-2xl font-bold text-slate-900">Voters</h1>
                 <p className="text-slate-500 text-sm mt-0.5">
                     {remaining} remaining · {voters.length} total assigned
                 </p>
