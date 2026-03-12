@@ -11,7 +11,7 @@ import { ProminentLogoutButton } from "@/components/ProminentLogoutButton";
 export default async function AdminDashboard() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     // We still need the profile for the welcome message
     const { data: profile } = await supabase
         .from("profiles")
@@ -62,7 +62,6 @@ export default async function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
                     <p className="text-slate-500 mt-1">Welcome back, {profile?.full_name ?? "Admin"}.</p>
                 </div>
-                <ProminentLogoutButton />
             </div>
 
             {/* Box Lookup */}
