@@ -1,99 +1,60 @@
 import { createClient } from "@/utils/supabase/server";
-import { Vote, Users, CheckCircle2, Clock, ArrowRight } from "lucide-react";
+import { createAdminClient } from "@/utils/supabase/admin";
+import { Vote, Users, CheckCircle2, Clock, ArrowRight, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-
-export const revalidate = 60; // Revalidate every minute for public dashboard
+import HomeRealtimeStats from "@/components/HomeRealtimeStats";
 
 export default async function Home() {
     let totalCount = 0;
     let votedCount = 0;
-    let error = false;
 
     try {
-        const supabase = await createClient();
+        const adminSupabase = await createAdminClient();
 
-        const { count: tc, error: tErr } = await supabase
+        const { count: tc } = await adminSupabase
             .from("voters")
             .select("*", { count: "exact", head: true });
 
-        if (!tErr) totalCount = tc || 0;
+        totalCount = tc || 0;
 
-        const { count: vc, error: vErr } = await supabase
+        const { count: vc } = await adminSupabase
             .from("voters")
             .select("*", { count: "exact", head: true })
             .eq("vote_status", true);
 
-        if (!vErr) votedCount = vc || 0;
-        if (tErr || vErr) {
-            console.error("Database mismatch or error:", tErr || vErr);
-            error = true;
-        }
+        votedCount = vc || 0;
     } catch (e) {
         console.error("Home page data fetch failed:", e);
-        error = true;
     }
 
-    const percentage = totalCount > 0 ? Math.round((votedCount / totalCount) * 100) : 0;
-
     return (
-        <div className="flex-1 flex flex-col items-center p-4 py-8 md:p-24 space-y-12 bg-muted/30 min-h-[calc(100vh-3.5rem)]">
-            <div className="text-center space-y-6 max-w-3xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-2 animate-in fade-in slide-in-from-top-4">
-                    <Clock className="w-3 h-3" /> Election Live
-                </div>
-                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground flex flex-col md:flex-row items-center justify-center gap-4">
-                    Voter Monitor
-                </h1>
-                <p className="text-lg text-muted-foreground px-4">
-                    Real-time monitoring of turnout across all polling stations and ballot boxes.
-                </p>
-
-            </div>
-
-            <Card className="w-full max-w-4xl border-none shadow-2xl bg-card overflow-hidden">
-                <div className="h-2 w-full bg-linear-to-r from-primary to-green-500" />
-                <CardContent className="p-8 md:p-12 space-y-10">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2 group">
-                            <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
-                                <Users className="w-3 h-3 text-primary" /> Total Registered
-                            </p>
-                            <p className="text-6xl font-bold text-foreground tabular-nums tracking-tighter transition-all group-hover:scale-105 origin-left">
-                                {totalCount.toLocaleString()}
-                            </p>
-                        </div>
-
-                        <div className="space-y-2 group">
-                            <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 justify-start md:justify-end">
-                                Total Voted <CheckCircle2 className="w-3 h-3 text-green-500" />
-                            </p>
-                            <p className="text-6xl font-bold text-primary tabular-nums tracking-tighter text-left md:text-right transition-all group-hover:scale-105 origin-right">
-                                {votedCount.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4 pt-4">
-                        <div className="flex justify-between items-end mb-1">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Turnout Progress</h3>
-                            <span className="text-3xl font-bold text-foreground tabular-nums">{percentage}%</span>
-                        </div>
-                        <Progress value={percentage} className="h-10 rounded-xl shadow-inner border bg-muted" />
-                        <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">
-                            <span>0% Poll Start</span>
-                            <span>100% Target Completion</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+        <div className="flex-1 flex flex-col items-center p-4 py-6 md:p-24 space-y-12 bg-muted/30 min-h-[calc(100vh-3.5rem)]">
 
             <div className="flex items-center gap-3 text-muted-foreground text-xs font-medium bg-background px-5 py-2.5 rounded-full border shadow-xs">
                 <span className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                <span>Live data updates every 60 seconds</span>
+                <span className="flex items-center gap-1.5">
+                    Live Real-time Dashboard
+                </span>
             </div>
+
+            <div className="text-center space-y-6 max-w-3xl mt-[-10px]">
+                <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-foreground flex flex-col md:flex-row items-center justify-center gap-4">
+                    Voter Monitor
+                </h1>
+                <p className="text-lg text-muted-foreground">
+                    Real-time monitoring of turnout across all polling stations and ballot boxes.
+                </p>
+            </div>
+
+            <Card className="w-full max-w-4xl border-none shadow-lg bg-card overflow-hidden">
+                <div className="h-2 w-full bg-linear-to-r from-primary to-green-500 mt-[-18px]" />
+                <CardContent className="p-8 md:p-12">
+                    <HomeRealtimeStats initialTotal={totalCount} initialVoted={votedCount} />
+                </CardContent>
+            </Card>
+
         </div>
     );
 }

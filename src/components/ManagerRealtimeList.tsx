@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Phone } from "lucide-react";
+import { CheckCircle2, Phone, PhoneCallIcon, PhoneIcon } from "lucide-react";
 
 const BROADCAST_CHANNEL = "vms-votes";
 
@@ -47,7 +47,7 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2">
             {voters.map((voter: any) => (
-                <div key={voter.id} className="flex items-center justify-between gap-3 px-4 py-3.5 rounded-xl border-l-4 border-l-orange-400 border bg-card">
+                <div key={voter.id} className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl border bg-card">
                     <div className="min-w-0">
                         <p className="font-semibold truncate">{voter.name}</p>
                         {(voter.house_name || voter.present_address) && (
@@ -58,9 +58,9 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
                         <a
                             href={`tel:${voter.contact}`}
                             title={voter.contact}
-                            className="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                            className="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-full bg-gray-100 text-primary-foreground hover:bg-primary/90 transition-colors"
                         >
-                            <Phone className="w-4 h-4" />
+                            <Phone className="w-4 h-4 text-primary" />
                         </a>
                     ) : (
                         <span className="text-xs text-muted-foreground italic shrink-0">No contact</span>

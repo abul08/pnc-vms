@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { useActionState, useState, useEffect, useRef } from "react";
 import { createVoterAction, updateVoterAction, deleteVoterAction, deleteAllVotersAction } from "@/app/actions/voterCrud";
 import { resetAllVotingStatusAction } from "@/app/actions/voter";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { createClient } from "@/utils/supabase/client";
+
+const BROADCAST_CHANNEL = "vms-votes";
 import {
     Dialog,
     DialogContent,
@@ -135,7 +139,20 @@ function VoterFormFields({ defaults }: { defaults?: any }) {
 function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit: (v: any) => void }) {
     const [detailOpen, setDetailOpen] = useState(false);
     const [delState, delAction, delPending] = useActionState(
-        async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await deleteVoterAction(fd)) }),
+        async (_: typeof initialState, fd: FormData) => {
+            const r = await deleteVoterAction(fd);
+            if (r?.success !== false) {
+                // Since deleteVoterAction (in voterCrud.ts) returns { success: true }
+                // We don't have broadcastStats here easily since it's in a sub-component
+                // But we can trigger a refresh via the channel directly
+                createClient().channel(BROADCAST_CHANNEL).send({
+                    type: "broadcast",
+                    event: "stats-update",
+                    payload: {},
+                });
+            }
+            return { ...initialState, ...r };
+        },
         initialState
     );
 
@@ -198,7 +215,17 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
 function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => void }) {
     const [detailOpen, setDetailOpen] = useState(false);
     const [delState, delAction, delPending] = useActionState(
-        async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await deleteVoterAction(fd)) }),
+        async (_: typeof initialState, fd: FormData) => {
+            const r = await deleteVoterAction(fd);
+            if (r?.success !== false) {
+                createClient().channel(BROADCAST_CHANNEL).send({
+                    type: "broadcast",
+                    event: "stats-update",
+                    payload: {},
+                });
+            }
+            return { ...initialState, ...r };
+        },
         initialState
     );
 
@@ -243,21 +270,58 @@ function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => vo
     );
 }
 
-export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0, pageSize = 500 }: {
+export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0, pageSize = 500, q: initialSearch = "" }: {
     initialVoters: any[];
     page?: number;
     totalPages?: number;
     total?: number;
     pageSize?: number;
+    q?: string;
 }) {
+    const router = useRouter();
+    const pathname = usePathname();
     const [showAdd, setShowAdd] = useState(false);
-    const [search, setSearch] = useState("");
+    const [search, setSearch] = useState(initialSearch);
     const [editingVoter, setEditingVoter] = useState<any>(null);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const supabaseClient = useRef(createClient()).current;
+
+    function broadcastStats() {
+        supabaseClient.channel(BROADCAST_CHANNEL).send({
+            type: "broadcast",
+            event: "stats-update",
+            payload: {},
+        });
+    }
+
+    // Update local state if prop changes (e.g. browser back button)
+    useEffect(() => {
+        setSearch(initialSearch);
+    }, [initialSearch]);
+
+    const handleSearchChange = (val: string) => {
+        setSearch(val);
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+
+        debounceRef.current = setTimeout(() => {
+            const params = new URLSearchParams(window.location.search);
+            if (val) {
+                params.set("q", val);
+            } else {
+                params.delete("q");
+            }
+            params.set("page", "1"); // Reset to page 1 on new search
+            router.push(`${pathname}?${params.toString()}`);
+        }, 400);
+    };
 
     const [addState, addAction, addPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
             const r = await createVoterAction(fd);
-            if (r?.success) setShowAdd(false);
+            if (r?.success) {
+                setShowAdd(false);
+                broadcastStats();
+            }
             return { ...initialState, ...r };
         },
         initialState
@@ -268,15 +332,14 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
             if (r?.success) {
                 setShowAdd(false);
                 setEditingVoter(null);
+                broadcastStats();
             }
             return { ...initialState, ...r };
         },
         initialState
     );
 
-    const filtered = initialVoters.filter(v =>
-        !search || v.name?.toLowerCase().includes(search.toLowerCase()) || v.national_id?.includes(search)
-    );
+    const filtered = initialVoters;
 
     const handleEdit = (voter: any) => {
         setEditingVoter(voter);
@@ -303,7 +366,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                         <Input
                             placeholder="Find voters by name or ID..."
                             value={search}
-                            onChange={e => setSearch(e.target.value)}
+                            onChange={e => handleSearchChange(e.target.value)}
                             className="h-11 pl-10 rounded-xl bg-white border-slate-200 focus:ring-primary/10 shadow-sm"
                         />
                     </div>
@@ -327,7 +390,11 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         <AlertDialogCancel className="rounded-xl font-medium">Cancel</AlertDialogCancel>
                                         <AlertDialogAction onClick={async () => {
                                             const res = await resetAllVotingStatusAction();
-                                            if (res.error) alert(res.error);
+                                            if (res.error) {
+                                                alert(res.error);
+                                            } else {
+                                                broadcastStats();
+                                            }
                                         }} className="bg-orange-600 hover:bg-orange-700 rounded-xl font-medium">
                                             Reset All
                                         </AlertDialogAction>
@@ -352,7 +419,11 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         <AlertDialogCancel className="rounded-xl font-medium">Cancel</AlertDialogCancel>
                                         <AlertDialogAction onClick={async () => {
                                             const res = await deleteAllVotersAction();
-                                            if (res.error) alert(res.error);
+                                            if (res.error) {
+                                                alert(res.error);
+                                            } else {
+                                                broadcastStats();
+                                            }
                                         }} className="bg-destructive hover:bg-destructive/90 rounded-xl font-medium">
                                             Confirm Delete
                                         </AlertDialogAction>
@@ -377,12 +448,12 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                 <div className="p-6 bg-white border-b border-slate-100 animate-in fade-in slide-in-from-top-2 duration-300">
                     <div className="flex items-center justify-between mb-5">
                         <div className="flex items-center gap-3">
-                            <div className="h-8 w-1.5 bg-primary rounded-full shadow-[0_0_10px_purple]" />
+                            <div className="h-8 w-1.5 bg-primary rounded-full " />
                             <div>
-                                <h3 className="text-base font-black text-slate-900 tracking-tight">
+                                <h3 className="text-lg font-bold text-slate-900 tracking-tight">
                                     {editingVoter ? "Update Voter Record" : "New Voter Registration"}
                                 </h3>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{editingVoter ? `Editing ID: ${editingVoter.id}` : "Manual Entry Form"}</p>
+                                <p className="text-[10px] text-slate-400 font-medium uppercase tracking-widest">{editingVoter ? `Editing ID: ${editingVoter.id}` : "Manual Entry Form"}</p>
                             </div>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => { setShowAdd(false); setEditingVoter(null); }} className="rounded-full">
@@ -391,7 +462,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                     </div>
                     <form action={editingVoter ? editAction : addAction} className="space-y-6">
                         {editingVoter && <input type="hidden" name="id" value={editingVoter.id} />}
-                        <VoterFormFields defaults={editingVoter} />
+                        <VoterFormFields defaults={editingVoter} key={editingVoter?.id || "new"} />
                         {(addState?.error || editState?.error) && (
                             <div className="p-4 bg-destructive/5 border border-destructive/10 rounded-2xl flex items-center gap-3 text-destructive">
                                 <Info className="w-4 h-4" />
@@ -399,7 +470,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                             </div>
                         )}
                         <div className="flex justify-end pt-2">
-                            <Button type="submit" disabled={addPending || editPending} className="h-12 px-10 rounded-xl font-black text-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            <Button type="submit" disabled={addPending || editPending} className="h-12 px-10 rounded-xl font-medium text-sm transition-all hover:scale-[1.02] active:scale-[0.98]">
                                 {(addPending || editPending) && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                                 {editingVoter ? "Confirm Updates" : "Register Voter"}
                             </Button>
@@ -515,7 +586,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                         <PaginationContent className="gap-2">
                             <PaginationItem>
                                 <PaginationPrevious
-                                    href={page > 1 ? `?page=${page - 1}` : "#"}
+                                    href={page > 1 ? `?page=${page - 1}${search ? `&q=${search}` : ""}` : "#"}
                                     aria-disabled={page <= 1}
                                     className={cn(
                                         "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",
@@ -532,7 +603,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationNext
-                                    href={page < totalPages ? `?page=${page + 1}` : "#"}
+                                    href={page < totalPages ? `?page=${page + 1}${search ? `&q=${search}` : ""}` : "#"}
                                     aria-disabled={page >= totalPages}
                                     className={cn(
                                         "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",

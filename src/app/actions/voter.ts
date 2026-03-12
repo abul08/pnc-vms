@@ -1,24 +1,31 @@
 "use server";
 
 import { createClient } from "@/utils/supabase/server";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { revalidatePath } from "next/cache";
 
 export async function markVoterDoneAction(voterId: string) {
     const supabase = await createClient();
+    const adminSupabase = await createAdminClient();
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
         return { error: "Unauthorized" };
     }
 
-    // Update voter status
-    const { error: updateError } = await supabase
+    // Update voter status using admin client to bypass restrictive RLS
+    const { data: updated, error: updateError } = await adminSupabase
         .from("voters")
         .update({ vote_status: true, voted_at: new Date().toISOString() })
-        .eq("id", voterId);
+        .eq("id", voterId)
+        .select();
 
     if (updateError) {
         return { error: updateError.message };
+    }
+
+    if (!updated || updated.length === 0) {
+        return { error: "Failed to update voter. You might not have permission or the voter does not exist." };
     }
 
     // Audit Log
@@ -37,15 +44,20 @@ export async function markVoterDoneAction(voterId: string) {
 
 export async function revertVoterAction(voterId: string) {
     const supabase = await createClient();
+    const adminSupabase = await createAdminClient();
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) return { error: "Unauthorized" };
 
-    const { error: updateError } = await supabase
+    const { data: updated, error: updateError } = await adminSupabase
         .from("voters")
         .update({ vote_status: false, voted_at: null })
-        .eq("id", voterId);
+        .eq("id", voterId)
+        .select();
 
     if (updateError) return { error: updateError.message };
+    if (!updated || updated.length === 0) {
+        return { error: "Failed to revert vote. You might not have permission or the voter does not exist." };
+    }
 
     await supabase.from("logs").insert({
         user_id: user.id,
@@ -77,6 +89,18 @@ export async function resetAllVotingStatusAction() {
         return { success: true, message: "All voting statuses reset." };
     } catch (e: any) {
         return { error: e.message };
+    }
+}
+
+export async function getLiveStatsAction() {
+    try {
+        const adminSupabase = await createAdminClient();
+        const { count: total } = await adminSupabase.from("voters").select("*", { count: "exact", head: true });
+        const { count: voted } = await adminSupabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true);
+        return { total: total || 0, voted: voted || 0 };
+    } catch (e) {
+        console.error("Failed to fetch live stats:", e);
+        return { total: 0, voted: 0 };
     }
 }
 

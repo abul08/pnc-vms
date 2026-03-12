@@ -10,7 +10,7 @@ const PAGE_SIZE = 500;
 export default async function VotersAdminPage({
     searchParams,
 }: {
-    searchParams: Promise<{ page?: string }>;
+    searchParams: Promise<{ page?: string; q?: string }>;
 }) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -19,14 +19,20 @@ export default async function VotersAdminPage({
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     if (profile?.role !== "admin") redirect("/login");
 
-    const { page: pageParam } = await searchParams;
+    const { page: pageParam, q: search } = await searchParams;
     const page = Math.max(1, parseInt(pageParam ?? "1", 10));
     const from = (page - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    const { data: voters, count } = await supabase
+    let query = supabase
         .from("voters")
-        .select("id, name, national_id, house_name, sex, consit, registered_box, contact, vote_status", { count: "exact" })
+        .select("id, name, national_id, house_name, sex, consit, registered_box, contact, vote_status, patch", { count: "exact" });
+
+    if (search) {
+        query = query.or(`name.ilike.%${search}%,national_id.ilike.%${search}%`);
+    }
+
+    const { data: voters, count } = await query
         .order("name")
         .range(from, to);
 
@@ -51,6 +57,7 @@ export default async function VotersAdminPage({
                 totalPages={totalPages}
                 total={count ?? 0}
                 pageSize={PAGE_SIZE}
+                q={search}
             />
         </div>
     );

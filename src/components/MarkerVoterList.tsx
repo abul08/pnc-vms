@@ -2,11 +2,10 @@
 
 import { useState, useTransition, useMemo, useRef, useEffect } from "react";
 import { markVoterDoneAction, revertVoterAction } from "@/app/actions/voter";
-import { lookupVoterByIdAction } from "@/app/actions/lookup";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, RotateCcw, Search, Globe, Loader2 } from "lucide-react";
+import { CheckCircle2, RotateCcw, Search } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 const BROADCAST_CHANNEL = "vms-votes";
@@ -16,7 +15,6 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
     const [optimisticVoted, setOptimisticVoted] = useState<boolean>(voter.vote_status);
     const supabase = useRef(createClient()).current;
 
-    // Sync state if voter prop changes (relevant for global results being marked)
     useEffect(() => {
         setOptimisticVoted(voter.vote_status);
     }, [voter.vote_status]);
@@ -29,21 +27,31 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
         });
     }
 
-    function handleMark() {
+    async function handleMark() {
         setOptimisticVoted(true);
         startTransition(async () => {
-            await markVoterDoneAction(voter.id);
-            broadcast(true);
-            onVoteChange?.(voter.id, true);
+            const res = await markVoterDoneAction(voter.id);
+            if (res?.error) {
+                setOptimisticVoted(false);
+                alert(`Error marking voter: ${res.error}`);
+            } else {
+                broadcast(true);
+                onVoteChange?.(voter.id, true);
+            }
         });
     }
 
-    function handleRevert() {
+    async function handleRevert() {
         setOptimisticVoted(false);
         startTransition(async () => {
-            await revertVoterAction(voter.id);
-            broadcast(false);
-            onVoteChange?.(voter.id, false);
+            const res = await revertVoterAction(voter.id);
+            if (res?.error) {
+                setOptimisticVoted(true);
+                alert(`Error reverting vote: ${res.error}`);
+            } else {
+                broadcast(false);
+                onVoteChange?.(voter.id, false);
+            }
         });
     }
 
@@ -105,9 +113,6 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
 
 export default function MarkerVoterList({ voters: initialAssigned }: { voters: any[] }) {
     const [search, setSearch] = useState("");
-    const [globalMode, setGlobalMode] = useState(false);
-    const [globalResults, setGlobalResults] = useState<any[]>([]);
-    const [isSearching, startSearch] = useTransition();
 
     const filteredAssigned = useMemo(() => {
         const q = search.toLowerCase().trim();
@@ -122,62 +127,26 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
 
     const handleSearch = (val: string) => {
         setSearch(val);
-        if (globalMode && val.trim().length >= 2) {
-            startSearch(async () => {
-                const res = await lookupVoterByIdAction(val);
-                setGlobalResults(res.voters ?? []);
-            });
-        }
     };
 
-    const toggleGlobal = () => {
-        const next = !globalMode;
-        setGlobalMode(next);
-        if (next && search.trim().length >= 2) {
-            handleSearch(search);
-        } else {
-            setGlobalResults([]);
-        }
-    };
-
-    const displayList = globalMode ? globalResults : filteredAssigned;
+    const displayList = filteredAssigned;
     const pending = displayList.filter(v => !v.vote_status);
     const voted = displayList.filter(v => v.vote_status);
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-2">
-                <div className="relative flex-1">
+        <div className="space-y-6">
+            <div className="flex items-center gap-3">
+                <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-                    {isSearching && (
-                        <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground animate-spin" />
-                    )}
                     <Input
                         type="search"
-                        placeholder={globalMode ? "Search global list..." : "Search assigned..."}
+                        placeholder="Search assigned voters..."
                         value={search}
                         onChange={e => handleSearch(e.target.value)}
-                        className="pl-9 pr-9 h-11 rounded-xl shadow-xs"
+                        className="pl-9 h-12 rounded-xl border-slate-200 focus:border-primary shadow-sm"
                     />
                 </div>
-                <Button
-                    variant={globalMode ? "default" : "outline"}
-                    size="icon"
-                    className="h-11 w-11 shrink-0 rounded-xl"
-                    onClick={toggleGlobal}
-                    title={globalMode ? "Switch to My Voters" : "Search Global Voter List"}
-                >
-                    <Globe className="w-5 h-5" />
-                </Button>
             </div>
-            {globalMode && (
-                <div className="flex items-center gap-2 px-1 py-1">
-                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter bg-blue-100 text-blue-700">
-                        Global Mode
-                    </Badge>
-                    <p className="text-[10px] text-muted-foreground font-medium">Showing matches from all constituencies</p>
-                </div>
-            )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {pending.map(v => <VoterCard key={v.id} voter={v} />)}
@@ -190,21 +159,14 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
                         <>
                             <p className="font-bold text-slate-800">No matches found</p>
                             <p className="text-muted-foreground text-sm mt-1">
-                                {globalMode ? "Check the ID and try again." : "Try switching to Global Search."}
+                                Check the spelling or ID and try again.
                             </p>
-                            {!globalMode && (
-                                <Button variant="link" size="sm" onClick={toggleGlobal} className="mt-2 text-primary">
-                                    Search Global Database
-                                </Button>
-                            )}
                         </>
                     ) : (
                         <>
-                            <p className="font-bold text-slate-800">
-                                {globalMode ? "Search to find voters" : "All Assigned Done!"}
-                            </p>
+                            <p className="font-bold text-slate-800">All Assigned Done!</p>
                             <p className="text-muted-foreground text-sm mt-1">
-                                {globalMode ? "Type a name or ID above." : "Switch to Global Mode if needed."}
+                                Great job! All assigned voters in your box have voted.
                             </p>
                         </>
                     )}
