@@ -83,13 +83,13 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                                 value={query}
                                 onChange={e => { setQuery(e.target.value); setSelected(null); }}
                                 placeholder="Type name or National ID…"
-                                className="pl-9 pr-9"
+                                className="pl-9 pr-9 text-md"
                             />
                         </div>
 
                         {/* Suggestion dropdown */}
                         {showSuggestions && (
-                            <div className="absolute top-full mt-1 left-0 right-0 z-50 bg-popover border rounded-lg shadow-lg overflow-hidden">
+                            <div className="absolute top-full mt-6 left-0 right-0 z-40 bg-popover border rounded-lg shadow-lg overflow-hidden">
                                 {suggestions.map((v, i) => (
                                     <button
                                         key={i}
@@ -101,7 +101,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                                             <p className="text-sm font-medium truncate">{v.name}</p>
                                             <p className="text-xs text-muted-foreground font-mono">{v.national_id}</p>
                                         </div>
-                                        <span className="ml-3 text-base font-black text-primary shrink-0 tabular-nums">{v.registered_box || "—"}</span>
+                                        <span className="ml-3 text-base font-medium text-primary shrink-0 tabular-nums">{v.registered_box || "—"}</span>
                                     </button>
                                 ))}
                             </div>
@@ -109,7 +109,7 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
 
                         {/* No results hint */}
                         {!isPending && query.trim().length >= 2 && !selected && suggestions.length === 0 && (
-                            <p className="absolute top-full mt-1 left-0 text-xs text-muted-foreground px-1">
+                            <p className="absolute top-full mt-1 left-0 text-xs text-red-500 px-4 py-4">
                                 No voter found
                             </p>
                         )}

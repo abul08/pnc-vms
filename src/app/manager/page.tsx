@@ -10,12 +10,19 @@ export default async function ManagerView() {
 
     const { data: assignments } = await supabase
         .from("assignments")
-        .select(`voter_id, voters (*)`)
+        .select("assigned_value")
         .eq("user_id", user.id)
         .eq("type", "manager");
 
-    const voters = assignments?.map((a: any) => a.voters) || [];
-    const unvoted = voters.filter((v: any) => v && !v.vote_status);
+    const assignedPatches = assignments?.map(a => a.assigned_value) || [];
+
+    const { data: voters } = await supabase
+        .from("voters")
+        .select("*")
+        .in("patch", assignedPatches);
+
+    const votersList = voters || [];
+    const unvoted = votersList.filter((v: any) => v && !v.vote_status);
 
     return (
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4">

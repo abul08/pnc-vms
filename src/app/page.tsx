@@ -44,20 +44,13 @@ export default async function Home() {
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-2 animate-in fade-in slide-in-from-top-4">
                     <Clock className="w-3 h-3" /> Election Live
                 </div>
-                <h1 className="text-4xl md:text-6xl font-black tracking-tight text-foreground flex flex-col md:flex-row items-center justify-center gap-4">
+                <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground flex flex-col md:flex-row items-center justify-center gap-4">
                     Voter Monitor
                 </h1>
                 <p className="text-lg text-muted-foreground px-4">
                     Real-time monitoring of turnout across all polling stations and ballot boxes.
                 </p>
-                <div className="flex flex-wrap justify-center gap-4 pt-2">
-                    <Link
-                        href="/login"
-                        className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-8 text-sm font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                    >
-                        Access System <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                </div>
+
             </div>
 
             <Card className="w-full max-w-4xl border-none shadow-2xl bg-card overflow-hidden">
@@ -68,7 +61,7 @@ export default async function Home() {
                             <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] flex items-center gap-2">
                                 <Users className="w-3 h-3 text-primary" /> Total Registered
                             </p>
-                            <p className="text-6xl font-black text-foreground tabular-nums tracking-tighter transition-all group-hover:scale-105 origin-left">
+                            <p className="text-6xl font-bold text-foreground tabular-nums tracking-tighter transition-all group-hover:scale-105 origin-left">
                                 {totalCount.toLocaleString()}
                             </p>
                         </div>
@@ -77,7 +70,7 @@ export default async function Home() {
                             <p className="text-muted-foreground font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 justify-start md:justify-end">
                                 Total Voted <CheckCircle2 className="w-3 h-3 text-green-500" />
                             </p>
-                            <p className="text-6xl font-black text-primary tabular-nums tracking-tighter text-left md:text-right transition-all group-hover:scale-105 origin-right">
+                            <p className="text-6xl font-bold text-primary tabular-nums tracking-tighter text-left md:text-right transition-all group-hover:scale-105 origin-right">
                                 {votedCount.toLocaleString()}
                             </p>
                         </div>
@@ -86,7 +79,7 @@ export default async function Home() {
                     <div className="space-y-4 pt-4">
                         <div className="flex justify-between items-end mb-1">
                             <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">Turnout Progress</h3>
-                            <span className="text-3xl font-black text-foreground italic tabular-nums">{percentage}%</span>
+                            <span className="text-3xl font-bold text-foreground tabular-nums">{percentage}%</span>
                         </div>
                         <Progress value={percentage} className="h-10 rounded-xl shadow-inner border bg-muted" />
                         <div className="flex justify-between text-[10px] font-bold text-muted-foreground uppercase tracking-widest px-1">

@@ -33,10 +33,10 @@ export default async function VotersAdminPage({
     const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
     return (
-        <div className="animate-reveal">
-            <div className="flex items-center justify-between gap-3 mb-4 p-4">
+        <div className="animate-reveal md:px-20 px-2">
+            <div className="flex items-center justify-between gap-3 mb-2 py-4 px-6">
                 <div>
-                    <h1 className="text-xl font-bold text-slate-900">Voter List</h1>
+                    <h1 className="text-xl font-bold text-slate-900 pt-2">Voter List</h1>
                     <p className="text-slate-500 text-xs mt-0.5 tabular-nums">{count?.toLocaleString() ?? 0} total · Page {page} of {totalPages}</p>
                 </div>
                 <Link href="/admin">

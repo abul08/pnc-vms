@@ -15,8 +15,10 @@ export default async function AssignmentsAdminPage() {
 
     const { data: voters } = await supabase
         .from("voters")
-        .select("id, name, national_id, house_name")
-        .order("name");
+        .select("registered_box, patch");
+
+    const boxes = Array.from(new Set(voters?.map(v => v.registered_box).filter(Boolean))) as string[];
+    const patches = Array.from(new Set(voters?.map(v => v.patch).filter(Boolean))) as string[];
 
     const { data: users } = await supabase
         .from("profiles")
@@ -26,7 +28,7 @@ export default async function AssignmentsAdminPage() {
 
     const { data: assignments } = await supabase
         .from("assignments")
-        .select("id, type, user_id, voter_id, profiles(full_name, role), voters(name, national_id)")
+        .select("id, type, user_id, assigned_value, profiles(full_name, role)")
         .order("created_at", { ascending: false });
 
     return (
@@ -41,7 +43,8 @@ export default async function AssignmentsAdminPage() {
                     </Link>
                 </div>
                 <AssignmentManager
-                    voters={voters ?? []}
+                    boxes={boxes}
+                    patches={patches}
                     users={users ?? []}
                     assignments={(assignments ?? []) as any[]}
                 />

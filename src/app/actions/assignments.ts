@@ -12,18 +12,18 @@ async function assertAdmin() {
     return supabase;
 }
 
-export async function assignVoterAction(formData: FormData) {
+export async function assignAreaAction(formData: FormData) {
     try {
         const supabase = await assertAdmin();
-        const voter_id = formData.get("voter_id")?.toString();
+        const assigned_value = formData.get("assigned_value")?.toString();
         const user_id = formData.get("user_id")?.toString();
         const type = formData.get("type")?.toString();
-        if (!voter_id || !user_id || !type) return { error: "All fields are required" };
+        if (!assigned_value || !user_id || !type) return { error: "All fields are required" };
         if (type !== "marker" && type !== "manager") return { error: "Invalid assignment type" };
-        const { error } = await supabase.from("assignments").insert({ voter_id, user_id, type });
+        const { error } = await supabase.from("assignments").insert({ assigned_value, user_id, type });
         if (error) return { error: error.message };
         revalidatePath("/admin/assignments");
-        return { success: true, message: "Voter assigned." };
+        return { success: true, message: "Area assigned." };
     } catch (e: any) {
         return { error: e.message };
     }

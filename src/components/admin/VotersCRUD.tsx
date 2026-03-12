@@ -53,6 +53,7 @@ const FIELDS = [
     { name: "sex", label: "Sex" },
     { name: "consit", label: "Constituency" },
     { name: "registered_box", label: "Box" },
+    { name: "patch", label: "Patch" },
     { name: "contact", label: "Contact" },
     { name: "present_address", label: "Address" },
 ] as const;
@@ -85,6 +86,7 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                             { icon: MapPin, label: "Present Address", value: voter.present_address },
                             { icon: ListChecks, label: "Constituency", value: voter.consit },
                             { icon: Hash, label: "Registered Box", value: voter.registered_box, highlight: true },
+                            { icon: Hash, label: "Patch", value: voter.patch, highlight: true },
                             { icon: Phone, label: "Contact", value: voter.contact },
                             { icon: User, label: "Sex", value: voter.sex },
                         ].map((item, idx) => (
@@ -153,9 +155,10 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
                 <TableCell className="font-mono text-xs tabular-nums hidden md:table-cell">{voter.national_id || "—"}</TableCell>
                 <TableCell className="text-slate-600 max-w-[150px] truncate">{voter.house_name || "—"}</TableCell>
                 <TableCell className="hidden lg:table-cell">{voter.sex || "—"}</TableCell>
-                <TableCell className="font-bold text-primary tabular-nums hidden lg:table-cell">{voter.registered_box || "—"}</TableCell>
-                <TableCell>
-                    <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[10px] h-5 px-1.5 sm:px-2">
+                <TableCell className="text-center font-bold text-primary tabular-nums hidden lg:table-cell">{voter.registered_box || "—"}</TableCell>
+                <TableCell className="text-center font-bold text-blue-600 tabular-nums hidden lg:table-cell">{voter.patch || "—"}</TableCell>
+                <TableCell className="text-center">
+                    <Badge variant={voter.vote_status ? "default" : "secondary"} className="text-[10px] h-5 px-1.5 sm:px-2 min-w-[60px] justify-center">
                         {voter.vote_status ? "Voted" : "Pending"}
                     </Badge>
                 </TableCell>
@@ -410,16 +413,17 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                 {/* Desktop Table */}
                 <div className="hidden md:block">
                     <Table>
-                        <TableHeader className="bg-slate-50/50">
-                            <TableRow className="hover:bg-transparent border-b-slate-100">
-                                <TableHead className="w-10 pl-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">#</TableHead>
-                                <TableHead className="pl-6 md:pl-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Identity Details</TableHead>
-                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">National ID</TableHead>
-                                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Residential Info</TableHead>
-                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Sex</TableHead>
-                                <TableHead className="hidden lg:table-cell text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Box</TableHead>
-                                <TableHead className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</TableHead>
-                                <TableHead className="text-right pr-6 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Control</TableHead>
+                        <TableHeader className="bg-slate-100/40 border-b border-slate-200">
+                            <TableRow className="hover:bg-transparent border-none">
+                                <TableHead className="w-10 pl-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">ID</TableHead>
+                                <TableHead className="pl-6 md:pl-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Full Name</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500">National ID</TableHead>
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Residence</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Sex</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Box</TableHead>
+                                <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Patch</TableHead>
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Status</TableHead>
+                                <TableHead className="text-right pr-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>

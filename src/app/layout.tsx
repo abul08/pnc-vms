@@ -27,7 +27,6 @@ export default function RootLayout({
     return (
         <html lang="en" className={cn("font-sans", geist.variable, hepta.variable)}>
             <body className={`${poppins.className} antialiased min-h-screen bg-slate-50 text-slate-900 flex flex-col`}>
-                <Navbar />
                 <main className="flex-1 pb-16 sm:pb-0">
                     {children}
                 </main>

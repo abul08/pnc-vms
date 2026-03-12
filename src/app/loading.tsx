@@ -20,7 +20,7 @@ export default function Loading() {
                 {/* Branding & Status */}
                 <div className="flex flex-col items-center gap-2">
                     <h2 className="text-xl font-black tracking-widest text-foreground uppercase animate-reveal">
-                        PNC <span className="text-primary italic">VMS</span>
+                        PNC <span className="text-primary">VMS</span>
                     </h2>
 
                     {/* Sleek Indeterminate Progress Bar */}

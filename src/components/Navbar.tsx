@@ -57,11 +57,7 @@ export default async function Navbar() {
                                 <span className="hidden sm:inline">Sign Out</span>
                             </Button>
                         </form>
-                    ) : (
-                        <Link href="/login" className="inline-flex items-center justify-center rounded-md text-sm font-medium h-9 px-3 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
-                            Sign In
-                        </Link>
-                    )}
+                    ) : null}
                 </div>
             </header>
 

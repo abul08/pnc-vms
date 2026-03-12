@@ -22,6 +22,7 @@ export const voterSchema = z.object({
     sex: z.string().optional().nullable(),
     consit: z.string().optional().nullable(),
     registered_box: z.string().optional().nullable(),
+    patch: z.string().optional().nullable(),
     age: z.coerce.number().optional().nullable(),
     national_id: z.string().optional().nullable(),
     present_address: z.string().optional().nullable(),

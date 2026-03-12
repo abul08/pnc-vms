@@ -51,6 +51,7 @@ export async function uploadExcelAction(formData: FormData) {
                 sex: getVal(['sex', 'gender']),
                 consit: getVal(['consit', 'constituency', 'island']),
                 registered_box: getVal(['box', 'registered box', 'registered_box', 'ballot box']),
+                patch: getVal(['patch', 'area', 'zone']),
                 age: parseInt(getVal(['age']) || '0') || null,
                 national_id: getVal(['id', 'id card', 'national id', 'national_id']),
                 present_address: getVal(['present address', 'current address', 'present_address']),

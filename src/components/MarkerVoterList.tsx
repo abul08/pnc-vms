@@ -170,54 +170,55 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
                     <Globe className="w-5 h-5" />
                 </Button>
             </div>
+            {globalMode && (
+                <div className="flex items-center gap-2 px-1 py-1">
+                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter bg-blue-100 text-blue-700">
+                        Global Mode
+                    </Badge>
+                    <p className="text-[10px] text-muted-foreground font-medium">Showing matches from all constituencies</p>
+                </div>
+            )}
 
-            <div className="space-y-2">
-                {globalMode && (
-                    <div className="flex items-center gap-2 px-1 py-1">
-                        <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter bg-blue-100 text-blue-700">
-                            Global Mode
-                        </Badge>
-                        <p className="text-[10px] text-muted-foreground font-medium">Showing matches from all constituencies</p>
-                    </div>
-                )}
-
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {pending.map(v => <VoterCard key={v.id} voter={v} />)}
-
-                {pending.length === 0 && (
-                    <div className="text-center py-16 rounded-3xl border border-dashed bg-muted/20">
-                        <CheckCircle2 className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                        {search ? (
-                            <>
-                                <p className="font-bold text-slate-800">No matches found</p>
-                                <p className="text-muted-foreground text-sm mt-1">
-                                    {globalMode ? "Check the ID and try again." : "Try switching to Global Search."}
-                                </p>
-                                {!globalMode && (
-                                    <Button variant="link" size="sm" onClick={toggleGlobal} className="mt-2 text-primary">
-                                        Search Global Database
-                                    </Button>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                <p className="font-bold text-slate-800">
-                                    {globalMode ? "Search to find voters" : "All Assigned Done!"}
-                                </p>
-                                <p className="text-muted-foreground text-sm mt-1">
-                                    {globalMode ? "Type a name or ID above." : "Switch to Global Mode if needed."}
-                                </p>
-                            </>
-                        )}
-                    </div>
-                )}
             </div>
 
+            {pending.length === 0 && (
+                <div className="text-center py-16 rounded-3xl border border-dashed bg-muted/20">
+                    <CheckCircle2 className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                    {search ? (
+                        <>
+                            <p className="font-bold text-slate-800">No matches found</p>
+                            <p className="text-muted-foreground text-sm mt-1">
+                                {globalMode ? "Check the ID and try again." : "Try switching to Global Search."}
+                            </p>
+                            {!globalMode && (
+                                <Button variant="link" size="sm" onClick={toggleGlobal} className="mt-2 text-primary">
+                                    Search Global Database
+                                </Button>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <p className="font-bold text-slate-800">
+                                {globalMode ? "Search to find voters" : "All Assigned Done!"}
+                            </p>
+                            <p className="text-muted-foreground text-sm mt-1">
+                                {globalMode ? "Type a name or ID above." : "Switch to Global Mode if needed."}
+                            </p>
+                        </>
+                    )}
+                </div>
+            )}
+
             {voted.length > 0 && (
-                <div className="space-y-2 pt-4">
+                <div className="space-y-3 pt-4 border-t border-dashed">
                     <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
                         Already Marked · {voted.length}
                     </p>
-                    {voted.map(v => <VoterCard key={v.id} voter={v} />)}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 opacity-60">
+                        {voted.map(v => <VoterCard key={v.id} voter={v} />)}
+                    </div>
                 </div>
             )}
         </div>

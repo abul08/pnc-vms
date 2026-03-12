@@ -10,12 +10,19 @@ export default async function MarkerView() {
 
     const { data: assignments } = await supabase
         .from("assignments")
-        .select("voters (*)")
+        .select("assigned_value")
         .eq("user_id", user.id)
         .eq("type", "marker");
 
-    const voters = assignments?.map((a: any) => a.voters).filter(Boolean) ?? [];
-    const remaining = voters.filter((v: any) => !v.vote_status).length;
+    const assignedBoxes = assignments?.map(a => a.assigned_value) || [];
+    
+    const { data: voters } = await supabase
+        .from("voters")
+        .select("*")
+        .in("registered_box", assignedBoxes);
+
+    const votersList = voters || [];
+    const remaining = votersList.filter((v: any) => !v.vote_status).length;
 
     return (
         <div className="max-w-md mx-auto p-4 pb-12 space-y-4">
@@ -29,7 +36,7 @@ export default async function MarkerView() {
             {/* Box Lookup */}
             <VoterBoxLookup />
 
-            <MarkerVoterList voters={voters} />
+            <MarkerVoterList voters={votersList} />
         </div>
     );
 }
