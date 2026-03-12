@@ -27,6 +27,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogDescription,
+    DialogFooter,
 } from "@/components/ui/dialog";
 import {
     Table,
@@ -118,6 +119,11 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                         </Badge>
                     </div>
                 </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto rounded-xl font-semibold">
+                        Close
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
@@ -136,8 +142,7 @@ function VoterFormFields({ defaults }: { defaults?: any }) {
     );
 }
 
-function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit: (v: any) => void }) {
-    const [detailOpen, setDetailOpen] = useState(false);
+function VoterRow({ voter, index, onEdit, onView }: { voter: any; index: number; onEdit: (v: any) => void; onView: (v: any) => void }) {
     const [delState, delAction, delPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
             const r = await deleteVoterAction(fd);
@@ -160,7 +165,7 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
         <>
             <TableRow
                 className="text-sm cursor-pointer hover:bg-slate-50/80 group transition-colors"
-                onClick={() => setDetailOpen(true)}
+                onClick={() => onView(voter)}
             >
                 <TableCell className="text-muted-foreground font-mono text-[10px] tabular-nums hidden sm:table-cell pl-6">{index}</TableCell>
                 <TableCell className="py-4">
@@ -182,9 +187,9 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
                 <TableCell className="text-right pr-6" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center justify-end gap-1">
                         <Button
-                            variant="ghost"
                             size="icon"
-                            onClick={() => onEdit(voter)}
+                            variant="ghost"
+                            onClick={(e) => { e.stopPropagation(); onEdit(voter); }}
                             className="h-8 w-8 rounded-full hover:bg-primary/5 hover:text-primary transition-colors"
                             title="Edit Voter"
                         >
@@ -198,7 +203,7 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
                                 type="submit"
                                 disabled={delPending}
                                 className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/5 transition-colors"
-                                onClick={e => { if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}
+                                onClick={e => { e.stopPropagation(); if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}
                                 title="Delete Voter"
                             >
                                 {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
@@ -207,13 +212,11 @@ function VoterRow({ voter, index, onEdit }: { voter: any; index: number; onEdit:
                     </div>
                 </TableCell>
             </TableRow>
-            <VoterDetailModal voter={voter} open={detailOpen} onOpenChange={setDetailOpen} />
         </>
     );
 }
 
-function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => void }) {
-    const [detailOpen, setDetailOpen] = useState(false);
+function VoterMobileCard({ voter, onEdit, onView }: { voter: any; onEdit: (v: any) => void; onView: (v: any) => void }) {
     const [delState, delAction, delPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
             const r = await deleteVoterAction(fd);
@@ -232,7 +235,7 @@ function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => vo
     return (
         <div
             className="px-6 py-4 bg-white border-b border-slate-100 last:border-0 active:bg-slate-50 transition-colors"
-            onClick={() => setDetailOpen(true)}
+            onClick={() => onView(voter)}
         >
             <div className="flex justify-between items-start gap-3">
                 <div className="space-y-1 flex-1 min-w-0">
@@ -252,20 +255,19 @@ function VoterMobileCard({ voter, onEdit }: { voter: any; onEdit: (v: any) => vo
                     </div>
                 </div>
                 <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(voter)} className="h-9 w-9 rounded-full bg-slate-50 text-slate-600">
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(voter); }} className="h-9 w-9 rounded-full bg-slate-50 text-slate-600">
                         <Edit2 className="w-3.5 h-3.5" />
                     </Button>
                     <form action={delAction}>
                         <input type="hidden" name="id" value={voter.id} />
                         <Button variant="ghost" size="icon" type="submit" disabled={delPending}
                             className="h-9 w-9 rounded-full bg-slate-50 text-destructive"
-                            onClick={e => { if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}>
+                            onClick={e => { e.stopPropagation(); if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}>
                             {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
                         </Button>
                     </form>
                 </div>
             </div>
-            <VoterDetailModal voter={voter} open={detailOpen} onOpenChange={setDetailOpen} />
         </div>
     );
 }
@@ -283,6 +285,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
     const [showAdd, setShowAdd] = useState(false);
     const [search, setSearch] = useState(initialSearch);
     const [editingVoter, setEditingVoter] = useState<any>(null);
+    const [viewingVoter, setViewingVoter] = useState<any>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const supabaseClient = useRef(createClient()).current;
 
@@ -505,6 +508,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         voter={v}
                                         index={i + 1 + (page - 1) * pageSize}
                                         onEdit={handleEdit}
+                                        onView={setViewingVoter}
                                     />
                                 ))
                             ) : search ? (
@@ -547,6 +551,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                 key={v.id}
                                 voter={v}
                                 onEdit={handleEdit}
+                                onView={setViewingVoter}
                             />
                         ))
                     ) : search ? (
@@ -615,6 +620,11 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                     </Pagination>
                 </div>
             )}
+            <VoterDetailModal
+                voter={viewingVoter}
+                open={!!viewingVoter}
+                onOpenChange={(open) => !open && setViewingVoter(null)}
+            />
         </div>
     );
 }
