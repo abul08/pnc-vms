@@ -119,11 +119,6 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                         </Badge>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto rounded-xl font-semibold">
-                        Close
-                    </Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
     );

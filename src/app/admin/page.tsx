@@ -6,25 +6,18 @@ import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AdminNavCards } from "@/components/admin/AdminNavCards";
+import { ProminentLogoutButton } from "@/components/ProminentLogoutButton";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect("/login");
-
+    
+    // We still need the profile for the welcome message
     const { data: profile } = await supabase
         .from("profiles")
-        .select("role, full_name")
-        .eq("id", user.id)
+        .select("full_name")
+        .eq("id", user?.id)
         .single();
-
-    if (profile?.role !== "admin") {
-        return (
-            <div className="flex min-h-screen items-center justify-center p-4">
-                <h1 className="text-2xl font-bold text-red-600">Access Denied: Admins Only</h1>
-            </div>
-        );
-    }
 
     const { count: totalVoters } = await supabase.from("voters").select("*", { count: "exact", head: true });
     const { count: votedVoters } = await supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true);
@@ -67,8 +60,9 @@ export default async function AdminDashboard() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
-                    <p className="text-slate-500 mt-1">Welcome back, {profile.full_name ?? "Admin"}.</p>
+                    <p className="text-slate-500 mt-1">Welcome back, {profile?.full_name ?? "Admin"}.</p>
                 </div>
+                <ProminentLogoutButton />
             </div>
 
             {/* Box Lookup */}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 
-const PAGE_SIZE = 500;
+const PAGE_SIZE = 100;
 
 export default async function VotersAdminPage({
     searchParams,
@@ -13,12 +13,6 @@ export default async function VotersAdminPage({
     searchParams: Promise<{ page?: string; q?: string }>;
 }) {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) redirect("/login");
-
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-    if (profile?.role !== "admin") redirect("/login");
-
     const { page: pageParam, q: search } = await searchParams;
     const page = Math.max(1, parseInt(pageParam ?? "1", 10));
     const from = (page - 1) * PAGE_SIZE;

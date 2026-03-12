@@ -1,25 +1,34 @@
 "use client";
 
-import { useTransition } from 'react';
+import { useTransition, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, Monitor, Vote, Users } from 'lucide-react';
+import { LayoutDashboard, Monitor, Vote, Users, LogOut } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/utils/supabase/client';
 
 interface NavItemProps {
-    href: string;
+    href?: string;
     icon: any;
     label: string;
-    isActive: boolean;
+    isActive?: boolean;
+    onClick?: (e: React.MouseEvent) => void;
+    isPending?: boolean;
 }
 
-function MobileNavItem({ href, icon: Icon, label, isActive }: NavItemProps) {
+function MobileNavItem({ href, icon: Icon, label, isActive, onClick, isPending: externalPending }: NavItemProps) {
     const router = useRouter();
-    const [isPending, startTransition] = useTransition();
+    const [localPending, startTransition] = useTransition();
+    const isPending = externalPending || localPending;
 
     const handleClick = (e: React.MouseEvent) => {
         if (isActive || isPending) return;
+        if (onClick) {
+            onClick(e);
+            return;
+        }
+        if (!href) return;
         e.preventDefault();
         startTransition(() => {
             router.push(href);
@@ -56,6 +65,31 @@ function MobileNavItem({ href, icon: Icon, label, isActive }: NavItemProps) {
 
 export function MobileNav({ role }: { role: string }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const [isLoggingOut, startLogout] = useTransition();
+    const supabase = createClient();
+
+    // Prefetch all possible navigation targets
+    useEffect(() => {
+        if (role === 'admin') {
+            router.prefetch('/admin');
+            router.prefetch('/admin/users');
+            router.prefetch('/admin/voters');
+            router.prefetch('/admin/assignments');
+        } else if (role === 'manager') {
+            router.prefetch('/manager');
+        } else if (role === 'marker') {
+            router.prefetch('/marker');
+        }
+    }, [role, router]);
+
+    const handleLogout = () => {
+        startLogout(async () => {
+            await supabase.auth.signOut();
+            router.push('/login');
+            router.refresh();
+        });
+    };
 
     const checkActive = (path: string) => {
         if (path === '/admin') {
@@ -81,15 +115,25 @@ export function MobileNav({ role }: { role: string }) {
                     <MobileNavItem href="/admin/voters" icon={Vote} label="Voters" isActive={checkActive('/admin/voters')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem href="/admin/assignments" icon={Monitor} label="Assign" isActive={checkActive('/admin/assignments')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
                 </>
             )}
 
             {isManager && (
-                <MobileNavItem href="/manager" icon={Monitor} label="Patch View" isActive={checkActive('/manager')} />
+                <>
+                    <MobileNavItem href="/manager" icon={Monitor} label="Patch View" isActive={checkActive('/manager')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
+                </>
             )}
 
             {isMarker && (
-                <MobileNavItem href="/marker" icon={Vote} label="My Voters" isActive={checkActive('/marker')} />
+                <>
+                    <MobileNavItem href="/marker" icon={Vote} label="My Voters" isActive={checkActive('/marker')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
+                </>
             )}
         </nav>
     );
