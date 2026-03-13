@@ -105,7 +105,7 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                                 </div>
                                 <span className={cn(
                                     "text-sm font-medium",
-                                    item.highlight ? "text-primary bg-primary/10 px-1 rounded-lg w-fit mt-0.5" : "text-slate-800 ml-6"
+                                    item.highlight ? "text-primary bg-primary/10 px-3 rounded-lg w-fit ml-6 mt-0.5" : "text-slate-800 ml-6"
                                 )}>
                                     {item.value || "—"}
                                 </span>
@@ -113,21 +113,6 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                         ))}
                     </div>
 
-                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 flex flex-col gap-3">
-                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Tracking Summary</p>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-6">
-                            {TRACKING_FIELDS.map(f => (
-                                <div key={f} className="flex items-center justify-between group border-b border-slate-100/50 pb-1 last:border-0">
-                                    <span className="text-[10px] font-medium capitalize text-slate-500 group-hover:text-primary transition-colors">
-                                        {f}
-                                    </span>
-                                    <Badge variant="outline" className="h-4 text-[9px] min-w-[24px] justify-center tabular-nums bg-white">
-                                        {voter[f] ?? 0}
-                                    </Badge>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
 
                     <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                         <div className="space-y-0.5">
@@ -160,13 +145,13 @@ function VoterFormFields({ defaults }: { defaults?: any }) {
                             <label htmlFor={`field-${f}`} className="text-[10px] font-semibold text-slate-500 capitalize px-1">
                                 {f}
                             </label>
-                            <Input 
-                                type="number" 
-                                name={f} 
+                            <Input
+                                type="number"
+                                name={f}
                                 id={`field-${f}`}
                                 defaultValue={defaults?.[f] ?? 0}
                                 min={0}
-                                className="h-8 text-xs font-mono tabular-nums rounded-lg focus:ring-primary/20" 
+                                className="h-8 text-xs font-mono tabular-nums rounded-lg focus:ring-primary/20"
                             />
                         </div>
                     ))}
