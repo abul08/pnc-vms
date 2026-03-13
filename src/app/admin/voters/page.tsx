@@ -20,15 +20,21 @@ export default async function VotersAdminPage({
 
     let query = supabase
         .from("voters")
-        .select("id, name, national_id, house_name, sex, consit, registered_box, contact, vote_status, patch", { count: "exact" });
+        .select("*", { count: "exact" });
 
     if (search) {
         query = query.or(`name.ilike.%${search}%,national_id.ilike.%${search}%`);
     }
 
-    const { data: voters, count } = await query
+    const { data: voters, count, error } = await query
         .order("name")
         .range(from, to);
+
+    if (error) {
+        console.error("Error fetching voters:", error);
+        // We can throw or pass the error. Let's throw for now to trigger the error boundary
+        // or return a simple error state.
+    }
 
     const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 

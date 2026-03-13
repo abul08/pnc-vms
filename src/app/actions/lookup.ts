@@ -6,6 +6,9 @@ export async function lookupVoterByIdAction(query: string) {
     if (!query?.trim()) return { error: "Please enter a name or National ID." };
 
     const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: "Unauthorized" };
+
     const q = query.trim();
 
     // Try exact national ID match first

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { headers } from 'next/headers';
-import { LogOut, LayoutDashboard, Monitor, Vote, Users } from 'lucide-react';
+import { LogOut, LayoutDashboard, Monitor, Vote, Users, BarChart3 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -38,13 +38,32 @@ export default async function Navbar() {
             {/* Top bar */}
             <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b">
                 <div className="flex h-14 items-center px-4 max-w-7xl mx-auto">
-                    <Link href={dashboardHref} className="flex items-center gap-2 font-bold text-primary mr-auto">
+                    <Link href={dashboardHref} className="flex items-center gap-2 font-bold text-primary">
                         <Vote className="h-5 w-5" />
                         <span className="text-base">PNC VMS</span>
                     </Link>
-                    {user && fullName && (
-                        <span className="hidden sm:block text-xs text-muted-foreground font-medium mr-3">{fullName}</span>
+
+                    {role === 'admin' && (
+                        <div className="hidden sm:flex items-center ml-8 gap-1">
+                            <Link href="/admin/candidates">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
+                                    <BarChart3 className="h-4 w-4" />
+                                    <span>Stats</span>
+                                </Button>
+                            </Link>
+                            <Link href="/admin/voters">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
+                                    <Users className="h-4 w-4" />
+                                    <span>Voters</span>
+                                </Button>
+                            </Link>
+                        </div>
                     )}
+
+                    <div className="ml-auto flex items-center gap-2">
+                        {user && fullName && (
+                            <span className="hidden sm:block text-xs text-muted-foreground font-medium mr-3">{fullName}</span>
+                        )}
                     {user ? (
                         <form action={async () => {
                             'use server';
@@ -57,7 +76,8 @@ export default async function Navbar() {
                                 <span className="hidden sm:inline">Sign Out</span>
                             </Button>
                         </form>
-                    ) : null}
+                        ) : null}
+                    </div>
                 </div>
             </header>
 

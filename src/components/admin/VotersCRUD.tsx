@@ -56,12 +56,16 @@ const FIELDS = [
     { name: "name", label: "Name", required: true },
     { name: "house_name", label: "House" },
     { name: "national_id", label: "National ID" },
-    { name: "sex", label: "Sex" },
-    { name: "consit", label: "Constituency" },
     { name: "registered_box", label: "Box" },
     { name: "patch", label: "Patch" },
     { name: "contact", label: "Contact" },
-    { name: "present_address", label: "Address" },
+    { name: "present_location", label: "Present Location" },
+] as const;
+
+const TRACKING_FIELDS = [
+    "nihadh", "athif", "nasheedha", "nasrath", "haniyya", "zahiyya", "sarumeela",
+    "saeed", "saif", "shiyam", "alim", "yumna", "fareesha", "najeeba", "lamya",
+    "samrath", "nuha", "faathun", "samaa", "rasheedha", "raashidha"
 ] as const;
 
 function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -89,12 +93,10 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                         {[
                             { icon: Fingerprint, label: "National ID", value: voter.national_id },
                             { icon: Home, label: "House", value: voter.house_name },
-                            { icon: MapPin, label: "Present Address", value: voter.present_address },
-                            { icon: ListChecks, label: "Constituency", value: voter.consit },
+                            { icon: MapPin, label: "Present Location", value: voter.present_location },
                             { icon: Hash, label: "Registered Box", value: voter.registered_box, highlight: true },
                             { icon: Hash, label: "Patch", value: voter.patch, highlight: true },
                             { icon: Phone, label: "Contact", value: voter.contact },
-                            { icon: User, label: "Sex", value: voter.sex },
                         ].map((item, idx) => (
                             <div key={idx} className={cn("flex flex-col gap-1", idx > 0 && "mt-[-10px]")}>
                                 <div className="flex items-center gap-2">
@@ -109,6 +111,22 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                                 </span>
                             </div>
                         ))}
+                    </div>
+
+                    <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100 flex flex-col gap-3">
+                        <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-1">Tracking Summary</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-3 gap-x-6">
+                            {TRACKING_FIELDS.map(f => (
+                                <div key={f} className="flex items-center justify-between group border-b border-slate-100/50 pb-1 last:border-0">
+                                    <span className="text-[10px] font-medium capitalize text-slate-500 group-hover:text-primary transition-colors">
+                                        {f}
+                                    </span>
+                                    <Badge variant="outline" className="h-4 text-[9px] min-w-[24px] justify-center tabular-nums bg-white">
+                                        {voter[f] ?? 0}
+                                    </Badge>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
@@ -134,6 +152,26 @@ function VoterFormFields({ defaults }: { defaults?: any }) {
                     <Input name={f.name} defaultValue={defaults?.[f.name] ?? ""} required={(f as any).required} className="h-9 text-sm rounded-xl" />
                 </div>
             ))}
+            <div className="col-span-full pt-4 pb-2 border-t border-slate-100 mt-2">
+                <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider mb-4">Numerical Tracking</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-y-3 gap-x-4">
+                    {TRACKING_FIELDS.map(f => (
+                        <div key={f} className="space-y-1">
+                            <label htmlFor={`field-${f}`} className="text-[10px] font-semibold text-slate-500 capitalize px-1">
+                                {f}
+                            </label>
+                            <Input 
+                                type="number" 
+                                name={f} 
+                                id={`field-${f}`}
+                                defaultValue={defaults?.[f] ?? 0}
+                                min={0}
+                                className="h-8 text-xs font-mono tabular-nums rounded-lg focus:ring-primary/20" 
+                            />
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 }
@@ -172,7 +210,6 @@ function VoterRow({ voter, index, onEdit, onView }: { voter: any; index: number;
                 </TableCell>
                 <TableCell className="font-mono text-xs tabular-nums hidden md:table-cell">{voter.national_id || "—"}</TableCell>
                 <TableCell className="text-slate-600 max-w-[150px] truncate">{voter.house_name || "—"}</TableCell>
-                <TableCell className="hidden lg:table-cell">{voter.sex || "—"}</TableCell>
                 <TableCell className="text-center font-bold text-primary tabular-nums hidden lg:table-cell">{voter.registered_box || "—"}</TableCell>
                 <TableCell className="text-center font-bold text-blue-600 tabular-nums hidden lg:table-cell">{voter.patch || "—"}</TableCell>
                 <TableCell className="text-center">
@@ -248,6 +285,10 @@ function VoterMobileCard({ voter, onEdit, onView }: { voter: any; onEdit: (v: an
                     <div className="flex items-center gap-1.5 text-slate-400">
                         <Fingerprint className="w-3 h-3 shrink-0" />
                         <p className="text-[10px] font-mono tabular-nums">{voter.national_id || "—"}</p>
+                    </div>
+                    <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-primary/20 text-primary">Box {voter.registered_box || "—"}</Badge>
+                        <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-blue-200 text-blue-600">Patch {voter.patch || "—"}</Badge>
                     </div>
                 </div>
                 <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
@@ -496,8 +537,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                 <TableHead className="w-10 pl-6 text-[10px] font-bold uppercase tracking-widest text-slate-500">ID</TableHead>
                                 <TableHead className="pl-6 md:pl-4 text-[10px] font-bold uppercase tracking-widest text-slate-500">Full Name</TableHead>
                                 <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500">National ID</TableHead>
-                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Residence</TableHead>
-                                <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Sex</TableHead>
+                                <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">House Name</TableHead>
                                 <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Box</TableHead>
                                 <TableHead className="hidden lg:table-cell text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Patch</TableHead>
                                 <TableHead className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-center">Status</TableHead>
@@ -530,18 +570,19 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                Array.from({ length: 8 }).map((_, i) => (
-                                    <TableRow key={i} className="hover:bg-transparent">
-                                        <TableCell className="hidden sm:table-cell pl-6"><Skeleton className="h-4 w-4 rounded-sm bg-slate-50" /></TableCell>
-                                        <TableCell className="pl-6 sm:pl-4"><Skeleton className="h-5 w-48 rounded bg-slate-50" /></TableCell>
-                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-24 rounded bg-slate-50" /></TableCell>
-                                        <TableCell><Skeleton className="h-4 w-32 rounded bg-slate-50" /></TableCell>
-                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-8 rounded bg-slate-50" /></TableCell>
-                                        <TableCell className="hidden lg:table-cell"><Skeleton className="h-4 w-10 rounded bg-slate-50" /></TableCell>
-                                        <TableCell><Skeleton className="h-5 w-16 rounded-full bg-slate-50" /></TableCell>
-                                        <TableCell className="text-right pr-6"><Skeleton className="h-9 w-20 ml-auto rounded-xl bg-slate-50" /></TableCell>
-                                    </TableRow>
-                                ))
+                                <TableRow>
+                                    <TableCell colSpan={8} className="h-[300px] text-center">
+                                        <div className="flex flex-col items-center justify-center gap-4 text-slate-300">
+                                            <div className="h-16 w-16 bg-slate-50 rounded-full flex items-center justify-center">
+                                                <Info className="w-8 h-8 opacity-20" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="font-bold text-slate-900 tracking-tight">No voters registered</p>
+                                                <p className="text-xs">Click "Add Voter" or upload an Excel file to get started.</p>
+                                            </div>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
                             )}
                         </TableBody>
                     </Table>
@@ -565,19 +606,11 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Try another keyword</p>
                         </div>
                     ) : (
-                        Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="p-4 space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <Skeleton className="h-5 w-[60%] bg-slate-50" />
-                                    <Skeleton className="h-4 w-16 rounded-full bg-slate-50" />
-                                </div>
-                                <Skeleton className="h-4 w-[40%] bg-slate-50" />
-                                <div className="flex gap-2">
-                                    <Skeleton className="h-8 w-8 rounded-full bg-slate-50" />
-                                    <Skeleton className="h-8 w-8 rounded-full bg-slate-50" />
-                                </div>
-                            </div>
-                        ))
+                        <div className="p-20 text-center text-slate-300">
+                            <Info className="w-10 h-10 opacity-10 mx-auto mb-4" />
+                            <p className="text-sm font-bold tracking-tight text-slate-900">No voters yet</p>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Start by adding your first record</p>
+                        </div>
                     )}
                 </div>
             </div>

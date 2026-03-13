@@ -48,17 +48,11 @@ export async function uploadExcelAction(formData: FormData) {
             return {
                 name: getVal(['name', 'full name', 'voter name', 'full_name']) || 'Unknown',
                 house_name: getVal(['house', 'address', 'house name', 'house_name']),
-                sex: getVal(['sex', 'gender']),
-                consit: getVal(['consit', 'constituency', 'island']),
                 registered_box: getVal(['box', 'registered box', 'registered_box', 'ballot box']),
                 patch: getVal(['patch', 'area', 'zone']),
-                age: parseInt(getVal(['age']) || '0') || null,
                 national_id: getVal(['id', 'id card', 'national id', 'national_id']),
-                present_address: getVal(['present address', 'current address', 'present_address']),
+                present_location: getVal(['location', 'present location', 'present_location', 'address', 'present_address']),
                 contact: getVal(['contact', 'phone', 'mobile']),
-                present_location: getVal(['location', 'present location', 'present_location']),
-                incharge: getVal(['incharge', 'in charge', 'responsible']),
-                remarks: getVal(['remarks', 'notes', 'comment'])
             };
         });
 

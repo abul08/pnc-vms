@@ -2,7 +2,7 @@
 
 import { useTransition, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { LayoutDashboard, Monitor, Vote, Users, LogOut } from 'lucide-react';
+import { LayoutDashboard, Monitor, Vote, Users, LogOut, BarChart3 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -76,6 +76,7 @@ export function MobileNav({ role }: { role: string }) {
             router.prefetch('/admin/users');
             router.prefetch('/admin/voters');
             router.prefetch('/admin/assignments');
+            router.prefetch('/admin/candidates');
         } else if (role === 'manager') {
             router.prefetch('/manager');
         } else if (role === 'marker') {
@@ -114,8 +115,10 @@ export function MobileNav({ role }: { role: string }) {
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem href="/admin/voters" icon={Vote} label="Voters" isActive={checkActive('/admin/voters')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
-                    <MobileNavItem href="/admin/assignments" icon={Monitor} label="Assign" isActive={checkActive('/admin/assignments')} />
+                    <MobileNavItem href="/admin/candidates" icon={BarChart3} label="Stats" isActive={checkActive('/admin/candidates')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem href="/admin/assignments" icon={Monitor} label="Assign" isActive={checkActive('/admin/assignments')} />
+                    <Separator orientation="vertical" className="h-auto my-3 shrink-0" />
                     <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
                 </>
             )}

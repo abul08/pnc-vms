@@ -75,16 +75,7 @@ export default async function AdminDashboard() {
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Registered</p>
                     <p className="text-4xl font-bold text-slate-900 tabular-nums">{totalVoters || 0}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Total Voted</p>
-                    <p className="text-4xl font-bold text-primary-600 tabular-nums">{votedVoters || 0}</p>
-                </div>
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-                    <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Progress</p>
-                    <p className="text-4xl font-bold text-slate-900 tabular-nums">
-                        {totalVoters ? Math.round(((votedVoters || 0) / totalVoters) * 100) : 0}%
-                    </p>
-                </div>
+
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
                     <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">System Users</p>
                     <p className="text-4xl font-bold text-slate-900 tabular-nums">{totalUsers || 0}</p>
