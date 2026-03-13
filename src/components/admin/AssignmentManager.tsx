@@ -20,6 +20,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Loader2, UserPlus, Trash2, User } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
@@ -36,14 +37,27 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
     const [assignState, assignAction, assignPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
             const r = await assignAreaAction(fd);
-            if (r?.success) setSelectedArea("");
+            if (r?.success) {
+                setSelectedArea("");
+                toast.success(r.message || "Area assigned successfully");
+            } else if (r?.error) {
+                toast.error(r.error);
+            }
             return { ...initialState, ...r };
         },
         initialState
     );
 
     const [unassignState, unassignAction, unassignPending] = useActionState(
-        async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await unassignVoterAction(fd)) }),
+        async (_: typeof initialState, fd: FormData) => {
+            const r = await unassignVoterAction(fd);
+            if (r?.success) {
+                toast.success("Assignment removed");
+            } else if (r?.error) {
+                toast.error(r.error);
+            }
+            return { ...initialState, ...r };
+        },
         initialState
     );
 
@@ -64,16 +78,16 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                         <div className="space-y-1.5">
                             <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">User Type</label>
                             <div className="grid grid-cols-2 gap-2">
-                                <Button 
-                                    type="button" 
+                                <Button
+                                    type="button"
                                     variant={selectedType === "marker" ? "default" : "outline"}
                                     onClick={() => { setSelectedType("marker"); setSelectedArea(""); }}
                                     className="h-9 text-xs"
                                 >
                                     Marker (per Box)
                                 </Button>
-                                <Button 
-                                    type="button" 
+                                <Button
+                                    type="button"
                                     variant={selectedType === "manager" ? "default" : "outline"}
                                     onClick={() => { setSelectedType("manager"); setSelectedArea(""); }}
                                     className="h-9 text-xs"
@@ -89,10 +103,10 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                 <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                                     {selectedType === "marker" ? "Select Registered Box" : "Select Patch"}
                                 </label>
-                                <select 
-                                    name="assigned_value" 
+                                <select
+                                    name="assigned_value"
                                     required
-                                    value={selectedArea} 
+                                    value={selectedArea}
                                     onChange={e => setSelectedArea(e.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                                 >
@@ -103,10 +117,10 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
 
                             <div className="space-y-1.5">
                                 <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Assign To User</label>
-                                <select 
-                                    name="user_id" 
+                                <select
+                                    name="user_id"
                                     required
-                                    value={selectedUser} 
+                                    value={selectedUser}
                                     onChange={e => setSelectedUser(e.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                                 >
@@ -142,7 +156,11 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                                     <AlertDialogAction onClick={async () => {
                                         const res = await resetAllAssignmentsAction();
-                                        if (res.error) alert(res.error);
+                                        if (res.error) {
+                                            toast.error(res.error);
+                                        } else {
+                                            toast.success("All assignments reset");
+                                        }
                                     }} className="bg-destructive hover:bg-destructive/90">
                                         Reset All
                                     </AlertDialogAction>
@@ -167,7 +185,7 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                     assignments.map((a: any) => (
                                         <TableRow key={a.id} className="text-sm">
                                             <TableCell className="py-2.5">
-                                                <Badge variant="secondary" className="font-bold text-primary">
+                                                <Badge variant="secondary" className="font-semibold text-primary">
                                                     {a.type === 'marker' ? 'Box' : 'Patch'} {a.assigned_value}
                                                 </Badge>
                                             </TableCell>
@@ -180,14 +198,31 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="py-2.5 text-right">
-                                                <form action={unassignAction}>
-                                                    <input type="hidden" name="id" value={a.id} />
-                                                    <Button variant="ghost" size="icon" type="submit" disabled={unassignPending}
-                                                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                                                        onClick={e => { if (!confirm("Remove this assignment?")) e.preventDefault(); }}>
-                                                        {unassignPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                                                    </Button>
-                                                </form>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger render={
+                                                        <Button variant="ghost" size="icon" disabled={unassignPending}
+                                                            className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                                                            {unassignPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                                        </Button>
+                                                    } />
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                            <AlertDialogTitle>Remove Assignment?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                This will remove the assignment for {a.profiles?.full_name}. They will no longer be assigned to this {a.type === 'marker' ? 'box' : 'patch'}.
+                                                            </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                            <form action={unassignAction}>
+                                                                <input type="hidden" name="id" value={a.id} />
+                                                                <AlertDialogAction type="submit" className="bg-destructive hover:bg-destructive/90">
+                                                                    Confirm Remove
+                                                                </AlertDialogAction>
+                                                            </form>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
                                             </TableCell>
                                         </TableRow>
                                     ))

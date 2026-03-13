@@ -7,13 +7,29 @@ import { ArrowRight } from "lucide-react";
 
 export default async function AssignmentsAdminPage() {
     const supabase = await createClient();
+    
+    // Exhaustive fetch for unique boxes and patches
+    let allVoters: { registered_box: string | null; patch: string | null }[] = [];
+    let from = 0;
+    const PAGE_SIZE = 1000;
+    
+    while (true) {
+        const { data } = await supabase
+            .from("voters")
+            .select("registered_box, patch")
+            .range(from, from + PAGE_SIZE - 1);
+        
+        if (!data || data.length === 0) break;
+        allVoters = [...allVoters, ...data];
+        if (data.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+    }
 
-    const { data: voters } = await supabase
-        .from("voters")
-        .select("registered_box, patch");
-
-    const boxes = Array.from(new Set(voters?.map(v => v.registered_box).filter(Boolean))) as string[];
-    const patches = Array.from(new Set(voters?.map(v => v.patch).filter(Boolean))) as string[];
+    const boxes = Array.from(new Set(allVoters.map(v => v.registered_box).filter(Boolean))) as string[];
+    const patches = Array.from(new Set(allVoters.map(v => v.patch).filter(Boolean))) as string[];
+    
+    boxes.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+    patches.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
     const { data: users } = await supabase
         .from("profiles")

@@ -6,6 +6,7 @@ import { uploadExcelAction } from "@/app/actions/upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
@@ -24,6 +25,11 @@ export function CreateUserForm() {
     const [state, formAction, isPending] = useActionState(
         async (_prev: typeof initialState, formData: FormData) => {
             const result = await createUserAction(formData);
+            if (result.success) {
+                toast.success(result.message || "User created successfully");
+            } else if (result.error) {
+                toast.error(result.error);
+            }
             return { ...initialState, ...result };
         },
         initialState
@@ -72,6 +78,11 @@ export function UploadExcelForm() {
     const [state, formAction, isPending] = useActionState(
         async (_prev: typeof initialState, formData: FormData) => {
             const result = await uploadExcelAction(formData);
+            if (result.success) {
+                toast.success(result.message || "Database uploaded successfully");
+            } else if (result.error) {
+                toast.error(result.error);
+            }
             return { ...initialState, ...result };
         },
         initialState

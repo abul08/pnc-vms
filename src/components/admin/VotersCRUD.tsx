@@ -48,6 +48,7 @@ import {
 import { Loader2, Plus, Search, Trash2, Edit2, X, Info, User, Home, Hash, MapPin, Phone, Fingerprint, ListChecks } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
@@ -319,6 +320,9 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
             if (r?.success) {
                 setShowAdd(false);
                 broadcastStats();
+                toast.success(r.message || "Voter registered.");
+            } else if (r?.error) {
+                toast.error(r.error);
             }
             return { ...initialState, ...r };
         },
@@ -331,6 +335,9 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                 setShowAdd(false);
                 setEditingVoter(null);
                 broadcastStats();
+                toast.success(r.message || "Voter updated.");
+            } else if (r?.error) {
+                toast.error(r.error);
             }
             return { ...initialState, ...r };
         },
@@ -389,9 +396,10 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         <AlertDialogAction onClick={async () => {
                                             const res = await resetAllVotingStatusAction();
                                             if (res.error) {
-                                                alert(res.error);
+                                                toast.error(res.error);
                                             } else {
                                                 broadcastStats();
+                                                toast.success("Voting status reset for all.");
                                             }
                                         }} className="bg-orange-600 hover:bg-orange-700 rounded-xl font-medium">
                                             Reset All
@@ -418,9 +426,10 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                         <AlertDialogAction onClick={async () => {
                                             const res = await deleteAllVotersAction();
                                             if (res.error) {
-                                                alert(res.error);
+                                                toast.error(res.error);
                                             } else {
                                                 broadcastStats();
+                                                toast.success("All voters deleted.");
                                             }
                                         }} className="bg-destructive hover:bg-destructive/90 rounded-xl font-medium">
                                             Confirm Delete

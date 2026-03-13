@@ -20,6 +20,19 @@ export async function assignAreaAction(formData: FormData) {
         const type = formData.get("type")?.toString();
         if (!assigned_value || !user_id || !type) return { error: "All fields are required" };
         if (type !== "marker" && type !== "manager") return { error: "Invalid assignment type" };
+
+        // Check for existing assignment for this area/type
+        const { data: existing } = await supabase
+            .from("assignments")
+            .select("id")
+            .eq("type", type)
+            .eq("assigned_value", assigned_value)
+            .maybeSingle();
+
+        if (existing) {
+            return { error: `This ${type === 'marker' ? 'box' : 'patch'} is already assigned.` };
+        }
+
         const { error } = await supabase.from("assignments").insert({ assigned_value, user_id, type });
         if (error) return { error: error.message };
         revalidatePath("/admin/assignments");

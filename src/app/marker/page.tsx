@@ -33,7 +33,6 @@ export default async function MarkerView() {
                         {remaining} remaining · {votersList.length} total assigned
                     </p>
                 </div>
-                <ProminentLogoutButton />
             </div>
 
             {/* Voter List */}

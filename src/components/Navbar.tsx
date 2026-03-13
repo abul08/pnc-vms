@@ -40,7 +40,7 @@ export default async function Navbar() {
                 <div className="flex h-14 items-center px-4 max-w-7xl mx-auto">
                     <Link href={dashboardHref} className="flex items-center gap-2 font-bold text-primary mr-auto">
                         <Vote className="h-5 w-5" />
-                        <span className="text-base">VMS</span>
+                        <span className="text-base">PNC VMS</span>
                     </Link>
                     {user && fullName && (
                         <span className="hidden sm:block text-xs text-muted-foreground font-medium mr-3">{fullName}</span>

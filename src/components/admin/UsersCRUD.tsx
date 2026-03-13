@@ -6,6 +6,7 @@ import { CreateUserForm } from "@/components/AdminForms";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 const ROLES = ["admin", "marker", "manager"] as const;
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
@@ -21,13 +22,26 @@ function UserCard({ user }: { user: any }) {
     const [editState, editAction, editPending] = useActionState(
         async (_: typeof initialState, fd: FormData) => {
             const r = await updateUserAction(fd);
-            if (r?.success) setEditing(false);
+            if (r?.success) {
+                setEditing(false);
+                toast.success("User updated");
+            } else if (r?.error) {
+                toast.error(r.error);
+            }
             return { ...initialState, ...r };
         },
         initialState
     );
     const [delState, delAction, delPending] = useActionState(
-        async (_: typeof initialState, fd: FormData) => ({ ...initialState, ...(await deleteUserAction(fd)) }),
+        async (_: typeof initialState, fd: FormData) => {
+            const r = await deleteUserAction(fd);
+            if (r?.success) {
+                toast.success("User deleted");
+            } else if (r?.error) {
+                toast.error(r.error);
+            }
+            return { ...initialState, ...r };
+        },
         initialState
     );
 

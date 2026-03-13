@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Toaster } from 'sonner'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import SessionTimeout from '@/components/SessionTimeout'
@@ -29,6 +30,7 @@ export default function RootLayout({
         <html lang="en" className={cn("font-sans", geist.variable, hepta.variable)}>
             <body className={`${poppins.className} antialiased min-h-screen bg-slate-50 text-slate-900 flex flex-col`}>
                 <Navbar />
+                <Toaster richColors position="top-right" />
                 <SessionTimeout />
                 <main className="flex-1 pb-16 sm:pb-0">
                     {children}
