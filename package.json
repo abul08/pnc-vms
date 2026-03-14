@@ -14,6 +14,7 @@
     "codepage": "^1.15.0",
     "cookie": "^1.1.1",
     "crc-32": "^1.2.2",
+    "date-fns": "^4.1.0",
     "frac": "^1.1.2",
     "iceberg-js": "^0.8.1",
     "lucide-react": "^0.577.0",
