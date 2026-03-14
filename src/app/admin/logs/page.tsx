@@ -41,16 +41,19 @@ export default async function SecurityLogsPage() {
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "Invalid Date";
             
-            return new Intl.DateTimeFormat("en-GB", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-                hour12: false,
-                timeZone: "Asia/Male"
-            }).format(date);
+            // Manual GMT+5 adjustment for Asia/Male
+            // This is safer than Intl.DateTimeFormat timezone which can fail in some environments
+            const maldivesTime = new Date(date.getTime() + (5 * 60 * 60 * 1000));
+            
+            const day = maldivesTime.getUTCDate().toString().padStart(2, '0');
+            const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const month = monthNames[maldivesTime.getUTCMonth()];
+            const year = maldivesTime.getUTCFullYear();
+            const hours = maldivesTime.getUTCHours().toString().padStart(2, '0');
+            const minutes = maldivesTime.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = maldivesTime.getUTCSeconds().toString().padStart(2, '0');
+            
+            return `${day} ${month}, ${year} ${hours}:${minutes}:${seconds}`;
         } catch (e) {
             return "Format Error";
         }
