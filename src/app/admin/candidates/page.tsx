@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/utils/supabase/admin";
+export const dynamic = "force-dynamic";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
