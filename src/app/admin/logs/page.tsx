@@ -65,7 +65,16 @@ export default async function SecurityLogsPage() {
                                 logs.map((log) => (
                                     <TableRow key={log.id} className="hover:bg-slate-50/50 transition-colors">
                                         <TableCell className="whitespace-nowrap text-xs text-slate-500 font-mono">
-                                            {format(new Date(log.created_at), "MMM d, yyyy HH:mm:ss")}
+                                            {new Intl.DateTimeFormat("en-GB", {
+                                                day: "2-digit",
+                                                month: "short",
+                                                year: "numeric",
+                                                hour: "2-digit",
+                                                minute: "2-digit",
+                                                second: "2-digit",
+                                                hour12: false,
+                                                timeZone: "Asia/Male"
+                                            }).format(new Date(log.created_at))}
                                         </TableCell>
                                         <TableCell className="font-medium text-slate-900">
                                             {log.username}
