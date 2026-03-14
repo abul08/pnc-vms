@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { ShieldAlert, Monitor, Globe, ArrowRight } from "lucide-react";
 import Link from "next/link";
@@ -11,7 +10,7 @@ export default async function SecurityLogsPage() {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supabaseUrl || !serviceRoleKey) {
-        return <div className="p-8 text-red-500">Server configuration error.</div>;
+        return <div className="p-8 text-red-500 font-bold">Server configuration error: Missing environment variables.</div>;
     }
 
     const adminAuthClient = createSupabaseAdmin(supabaseUrl, serviceRoleKey, {
@@ -29,7 +28,33 @@ export default async function SecurityLogsPage() {
 
     if (error) {
         console.error("Error fetching logs:", error);
+        return (
+            <div className="p-8 text-red-500">
+                <h2 className="text-xl font-bold">Failed to load logs</h2>
+                <p>{error.message}</p>
+            </div>
+        );
     }
+
+    const formatDate = (dateString: string) => {
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "Invalid Date";
+            
+            return new Intl.DateTimeFormat("en-GB", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false,
+                timeZone: "Asia/Male"
+            }).format(date);
+        } catch (e) {
+            return "Format Error";
+        }
+    };
 
     return (
         <div className="max-w-6xl mx-auto p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
@@ -65,16 +90,7 @@ export default async function SecurityLogsPage() {
                                 logs.map((log) => (
                                     <TableRow key={log.id} className="hover:bg-slate-50/50 transition-colors">
                                         <TableCell className="whitespace-nowrap text-xs text-slate-500 font-mono">
-                                            {new Intl.DateTimeFormat("en-GB", {
-                                                day: "2-digit",
-                                                month: "short",
-                                                year: "numeric",
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                                second: "2-digit",
-                                                hour12: false,
-                                                timeZone: "Asia/Male"
-                                            }).format(new Date(log.created_at))}
+                                            {formatDate(log.created_at)}
                                         </TableCell>
                                         <TableCell className="font-medium text-slate-900">
                                             {log.username}
@@ -120,3 +136,4 @@ export default async function SecurityLogsPage() {
         </div>
     );
 }
+
