@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
+import { getUser, getProfile } from '@/utils/supabase/queries';
 import { headers } from 'next/headers';
-import { LogOut, LayoutDashboard, Monitor, Vote, Users, BarChart3 } from 'lucide-react';
+import { LogOut, BarChart3, Vote } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { MobileNav } from './MobileNav';
 
 export default async function Navbar() {
@@ -14,16 +14,13 @@ export default async function Navbar() {
     if (pathname === '/login') return null;
 
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser(supabase);
 
     let role: string | null = null;
     let fullName: string | null = null;
+    
     if (user) {
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, full_name")
-            .eq("id", user.id)
-            .single();
+        const profile = await getProfile(supabase, user.id);
         role = profile?.role || null;
         fullName = profile?.full_name || null;
     }

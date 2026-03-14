@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
+import { getUser, getProfile } from "@/utils/supabase/queries";
 import { redirect } from "next/navigation";
 import { UploadExcelForm } from "@/components/AdminForms";
 import VoterBoxLookup from "@/components/VoterBoxLookup";
@@ -10,20 +11,25 @@ import { ProminentLogoutButton } from "@/components/ProminentLogoutButton";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser(supabase);
 
     // We still need the profile for the welcome message
-    const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user?.id)
-        .single();
+    const profile = await getProfile(supabase, user?.id);
 
-    const { count: totalVoters } = await supabase.from("voters").select("*", { count: "exact", head: true });
-    const { count: votedVoters } = await supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true);
-    const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
-    const { count: totalAssignments } = await supabase.from("assignments").select("*", { count: "exact", head: true });
-    const { count: totalLogs } = await supabase.from("login_logs").select("*", { count: "exact", head: true });
+    // Parallelize all aggregate database queries
+    const [
+        { count: totalVoters },
+        { count: votedVoters },
+        { count: totalUsers },
+        { count: totalAssignments },
+        { count: totalLogs }
+    ] = await Promise.all([
+        supabase.from("voters").select("*", { count: "exact", head: true }),
+        supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("assignments").select("*", { count: "exact", head: true }),
+        supabase.from("login_logs").select("*", { count: "exact", head: true }),
+    ]);
 
     // Passing iconName as string to satisfy serializability requirements
     const navSections = [

@@ -1,14 +1,15 @@
 import { createClient } from "@/utils/supabase/server";
+import { getUser, getProfile } from "@/utils/supabase/queries";
 import { redirect } from "next/navigation";
 import MarkerVoterList from "@/components/MarkerVoterList";
 import { ProminentLogoutButton } from "@/components/ProminentLogoutButton";
 
 export default async function MarkerView() {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getUser(supabase);
     if (!user) redirect("/login");
 
-    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    const profile = await getProfile(supabase, user.id);
     if (profile?.role === "spectator") redirect("/");
 
     const { data: assignments } = await supabase
