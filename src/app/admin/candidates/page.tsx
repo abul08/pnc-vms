@@ -17,7 +17,7 @@ export default async function CandidatesAdminPage() {
                         <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/20">
                             <BarChart3 className="w-6 h-6 text-white" />
                         </div>
-                        <h1 className="text-3xl font-bold text-slate-800 uppercase">
+                        <h1 className="text-2xl font-bold text-slate-800 uppercase">
                             Candidate Stats
                         </h1>
                     </div>

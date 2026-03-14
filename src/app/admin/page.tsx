@@ -23,6 +23,7 @@ export default async function AdminDashboard() {
     const { count: votedVoters } = await supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true);
     const { count: totalUsers } = await supabase.from("profiles").select("*", { count: "exact", head: true });
     const { count: totalAssignments } = await supabase.from("assignments").select("*", { count: "exact", head: true });
+    const { count: totalLogs } = await supabase.from("login_logs").select("*", { count: "exact", head: true });
 
     // Passing iconName as string to satisfy serializability requirements
     const navSections = [
@@ -52,6 +53,15 @@ export default async function AdminDashboard() {
             stat: `${totalAssignments ?? 0} assignments`,
             color: "bg-green-50 text-green-600 border-green-100",
             badge: "bg-green-100 text-green-700",
+        },
+        {
+            href: "/admin/logs",
+            iconName: "logs" as const,
+            label: "Security Logs",
+            description: "View login attempts & device tracking",
+            stat: `${totalLogs ?? 0} records`,
+            color: "bg-orange-50 text-orange-600 border-orange-100",
+            badge: "bg-orange-100 text-orange-700",
         },
     ];
 

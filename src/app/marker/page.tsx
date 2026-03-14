@@ -8,6 +8,9 @@ export default async function MarkerView() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) redirect("/login");
 
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    if (profile?.role === "spectator") redirect("/");
+
     const { data: assignments } = await supabase
         .from("assignments")
         .select("assigned_value")

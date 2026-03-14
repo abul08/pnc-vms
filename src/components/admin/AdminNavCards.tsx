@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Users, ListChecks, Link as LinkIcon } from "lucide-react";
+import { Users, ListChecks, Link as LinkIcon, ShieldAlert } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
@@ -10,11 +10,12 @@ const ICON_MAP = {
     users: Users,
     voters: ListChecks,
     assignments: LinkIcon,
+    logs: ShieldAlert,
 };
 
 interface NavCardProps {
     href: string;
-    iconName: "users" | "voters" | "assignments";
+    iconName: "users" | "voters" | "assignments" | "logs";
     label: string;
     description: string;
     stat: string;

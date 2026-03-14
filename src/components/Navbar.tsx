@@ -51,38 +51,32 @@ export default async function Navbar() {
                                     <span>Stats</span>
                                 </Button>
                             </Link>
-                            <Link href="/admin/voters">
-                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
-                                    <Users className="h-4 w-4" />
-                                    <span>Voters</span>
-                                </Button>
-                            </Link>
                         </div>
                     )}
 
                     <div className="ml-auto flex items-center gap-2">
                         {user && fullName && (
-                            <span className="hidden sm:block text-xs text-muted-foreground font-medium mr-3">{fullName}</span>
+                            <span className="text-xs text-slate-700 font-semibold mr-2">{fullName}</span>
                         )}
-                    {user ? (
-                        <form action={async () => {
-                            'use server';
-                            const supabase = await createClient();
-                            await supabase.auth.signOut();
-                            redirect('/login');
-                        }}>
-                            <Button variant="ghost" size="sm" type="submit" className="gap-1.5 text-muted-foreground">
-                                <LogOut className="h-4 w-4" />
-                                <span className="hidden sm:inline">Sign Out</span>
-                            </Button>
-                        </form>
+                        {user ? (
+                            <form action={async () => {
+                                'use server';
+                                const supabase = await createClient();
+                                await supabase.auth.signOut();
+                                redirect('/login');
+                            }} className="hidden sm:block">
+                                <Button variant="ghost" size="sm" type="submit" className="gap-1.5 text-muted-foreground">
+                                    <LogOut className="h-4 w-4" />
+                                    <span>Sign Out</span>
+                                </Button>
+                            </form>
                         ) : null}
                     </div>
                 </div>
             </header>
 
             {/* Bottom tab bar — mobile only */}
-            {user && role && <MobileNav role={role} />}
+            {user && role && role !== 'spectator' && <MobileNav role={role} />}
         </>
     );
 }

@@ -212,12 +212,12 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                                                 This will remove the assignment for {a.profiles?.full_name}. They will no longer be assigned to this {a.type === 'marker' ? 'box' : 'patch'}.
                                                             </AlertDialogDescription>
                                                         </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogFooter className="flex-row align-center justify-center gap-2 sm:gap-2">
+                                                            <AlertDialogCancel className="px-10">Cancel</AlertDialogCancel>
                                                             <form action={unassignAction}>
                                                                 <input type="hidden" name="id" value={a.id} />
-                                                                <AlertDialogAction type="submit" className="bg-destructive hover:bg-destructive/90">
-                                                                    Confirm Remove
+                                                                <AlertDialogAction type="submit" className="bg-destructive hover:bg-destructive/90 px-10">
+                                                                    Remove
                                                                 </AlertDialogAction>
                                                             </form>
                                                         </AlertDialogFooter>

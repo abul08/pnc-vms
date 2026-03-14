@@ -213,20 +213,37 @@ function VoterRow({ voter, index, onEdit, onView }: { voter: any; index: number;
                         >
                             <Edit2 className="w-3.5 h-3.5" />
                         </Button>
-                        <form action={delAction}>
-                            <input type="hidden" name="id" value={voter.id} />
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                type="submit"
-                                disabled={delPending}
-                                className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/5 transition-colors"
-                                onClick={e => { e.stopPropagation(); if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}
-                                title="Delete Voter"
-                            >
-                                {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                            </Button>
-                        </form>
+                        <AlertDialog>
+                            <AlertDialogTrigger render={
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 rounded-full text-destructive hover:bg-destructive/5 transition-colors"
+                                    title="Delete Voter"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                </Button>
+                            } />
+                            <AlertDialogContent onClick={(e) => e.stopPropagation()} className="rounded-2xl max-w-sm">
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle className="text-destructive font-bold">Delete Voter?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Are you sure you want to delete {voter.name}? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter className="flex-row items-center justify-end gap-2 sm:gap-2">
+                                    <AlertDialogCancel className="mt-0 flex-1 rounded-xl">Cancel</AlertDialogCancel>
+                                    <form action={delAction} className="flex-1">
+                                        <input type="hidden" name="id" value={voter.id} />
+                                        <AlertDialogAction type="submit" disabled={delPending} className="w-full bg-destructive hover:bg-destructive/90 rounded-xl">
+                                            {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : null}
+                                            Delete
+                                        </AlertDialogAction>
+                                    </form>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     </div>
                 </TableCell>
             </TableRow>
@@ -280,14 +297,36 @@ function VoterMobileCard({ voter, onEdit, onView }: { voter: any; onEdit: (v: an
                     <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); onEdit(voter); }} className="h-9 w-9 rounded-full bg-slate-50 text-slate-600">
                         <Edit2 className="w-3.5 h-3.5" />
                     </Button>
-                    <form action={delAction}>
-                        <input type="hidden" name="id" value={voter.id} />
-                        <Button variant="ghost" size="icon" type="submit" disabled={delPending}
-                            className="h-9 w-9 rounded-full bg-slate-50 text-destructive"
-                            onClick={e => { e.stopPropagation(); if (!confirm(`Delete ${voter.name}?`)) e.preventDefault(); }}>
-                            {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        </Button>
-                    </form>
+                    <AlertDialog>
+                        <AlertDialogTrigger render={
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 rounded-full bg-slate-50 text-destructive"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                        } />
+                        <AlertDialogContent onClick={(e) => e.stopPropagation()} className="rounded-2xl max-w-sm">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle className="text-destructive font-bold">Delete Voter?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Are you sure you want to delete {voter.name}? This action cannot be undone.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter className="flex-row items-center justify-end gap-2 sm:gap-2">
+                                <AlertDialogCancel className="mt-0 flex-1 rounded-xl">Cancel</AlertDialogCancel>
+                                <form action={delAction} className="flex-1">
+                                    <input type="hidden" name="id" value={voter.id} />
+                                    <AlertDialogAction type="submit" disabled={delPending} className="w-full bg-destructive hover:bg-destructive/90 rounded-xl">
+                                        {delPending ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : null}
+                                        Delete
+                                    </AlertDialogAction>
+                                </form>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </div>
         </div>
