@@ -14,15 +14,15 @@ export default async function Home() {
         const adminSupabase = await createAdminClient();
 
         const [
-            { count: tc },
-            { count: vc }
+            { data: stats, error: statsError }
         ] = await Promise.all([
-            adminSupabase.from("voters").select("*", { count: "exact", head: true }),
-            adminSupabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true)
+            adminSupabase.from("dashboard_stats").select("total_voters, voted_voters").single()
         ]);
 
-        totalCount = tc || 0;
-        votedCount = vc || 0;
+        if (statsError) throw statsError;
+
+        totalCount = stats.total_voters || 0;
+        votedCount = stats.voted_voters || 0;
     } catch (e) {
         console.error("Home page data fetch failed:", e);
     }

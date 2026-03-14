@@ -27,20 +27,23 @@ export default async function AdminDashboard() {
         });
     }
 
-    // Parallelize all aggregate database queries
-    const [
-        { count: totalVoters },
-        { count: votedVoters },
-        { count: totalUsers },
-        { count: totalAssignments },
-        { count: totalLogs }
-    ] = await Promise.all([
-        supabase.from("voters").select("*", { count: "exact", head: true }),
-        supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("assignments").select("*", { count: "exact", head: true }),
-        adminAuthClient.from("login_logs").select("*", { count: "exact", head: true }),
-    ]);
+    // Single fetch for all dashboard statistics from our optimized view
+    const { data: stats, error: statsError } = await adminAuthClient
+        .from("dashboard_stats")
+        .select("*")
+        .single();
+
+    if (statsError) {
+        console.error("Error fetching dashboard stats:", statsError);
+    }
+
+    const {
+        total_voters: totalVoters,
+        voted_voters: votedVoters,
+        total_users: totalUsers,
+        total_assignments: totalAssignments,
+        total_logs: totalLogs
+    } = stats || {};
 
     // Passing iconName as string to satisfy serializability requirements
     const navSections = [
