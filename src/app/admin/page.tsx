@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AdminNavCards } from "@/components/admin/AdminNavCards";
 import { ProminentLogoutButton } from "@/components/ProminentLogoutButton";
+import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
@@ -15,6 +16,16 @@ export default async function AdminDashboard() {
 
     // We still need the profile for the welcome message
     const profile = await getProfile(supabase, user?.id);
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    let adminAuthClient = supabase; // Fallback
+    if (supabaseUrl && serviceRoleKey) {
+        adminAuthClient = createSupabaseAdmin(supabaseUrl, serviceRoleKey, {
+            auth: { autoRefreshToken: false, persistSession: false },
+        });
+    }
 
     // Parallelize all aggregate database queries
     const [
@@ -28,7 +39,7 @@ export default async function AdminDashboard() {
         supabase.from("voters").select("*", { count: "exact", head: true }).eq("vote_status", true),
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("assignments").select("*", { count: "exact", head: true }),
-        supabase.from("login_logs").select("*", { count: "exact", head: true }),
+        adminAuthClient.from("login_logs").select("*", { count: "exact", head: true }),
     ]);
 
     // Passing iconName as string to satisfy serializability requirements
