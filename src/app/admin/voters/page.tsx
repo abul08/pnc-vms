@@ -10,10 +10,10 @@ const PAGE_SIZE = 100;
 export default async function VotersAdminPage({
     searchParams,
 }: {
-    searchParams: Promise<{ page?: string; q?: string }>;
+    searchParams: Promise<{ page?: string; q?: string; status?: string }>;
 }) {
     const supabase = await createClient();
-    const { page: pageParam, q: search } = await searchParams;
+    const { page: pageParam, q: search, status } = await searchParams;
     const page = Math.max(1, parseInt(pageParam ?? "1", 10));
     const from = (page - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
@@ -24,6 +24,12 @@ export default async function VotersAdminPage({
 
     if (search) {
         query = query.or(`name.ilike.%${search}%,national_id.ilike.%${search}%`);
+    }
+
+    if (status === "voted") {
+        query = query.eq("vote_status", true);
+    } else if (status === "pending") {
+        query = query.eq("vote_status", false);
     }
 
     const { data: voters, count, error } = await query
@@ -58,6 +64,7 @@ export default async function VotersAdminPage({
                 total={count ?? 0}
                 pageSize={PAGE_SIZE}
                 q={search}
+                status={status}
             />
         </div>
     );

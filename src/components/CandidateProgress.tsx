@@ -99,7 +99,7 @@ export default function CandidateProgress({
                         {group.categories.map((category) => (
                             <Card key={category.title} className="border-slate-100 shadow-sm overflow-hidden">
                                 <CardHeader className="bg-slate-50/50 border-b border-slate-100">
-                                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
+                                    <CardTitle className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center mt-4 gap-2">
                                         <TrendingUp className="w-3.5 h-3.5" />
                                         {category.title}
                                     </CardTitle>

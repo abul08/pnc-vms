@@ -333,13 +333,14 @@ function VoterMobileCard({ voter, onEdit, onView }: { voter: any; onEdit: (v: an
     );
 }
 
-export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0, pageSize = 500, q: initialSearch = "" }: {
+export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0, pageSize = 500, q: initialSearch = "", status = "all" }: {
     initialVoters: any[];
     page?: number;
     totalPages?: number;
     total?: number;
     pageSize?: number;
     q?: string;
+    status?: string;
 }) {
     const router = useRouter();
     const pathname = usePathname();
@@ -377,6 +378,17 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
             params.set("page", "1"); // Reset to page 1 on new search
             router.push(`${pathname}?${params.toString()}`);
         }, 400);
+    };
+
+    const handleStatusChange = (newStatus: string) => {
+        const params = new URLSearchParams(window.location.search);
+        if (newStatus && newStatus !== "all") {
+            params.set("status", newStatus);
+        } else {
+            params.delete("status");
+        }
+        params.set("page", "1"); // Reset to page 1 on filter change
+        router.push(`${pathname}?${params.toString()}`);
     };
 
     const [addState, addAction, addPending] = useActionState(
@@ -430,22 +442,55 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
         <div className="rounded-2xl border bg-white shadow-sm overflow-hidden border-slate-100 min-h-[400px]">
             {/* Top Action Bar */}
             <div className="p-4 space-y-4 border-b border-slate-100 bg-slate-50/20">
-                <div className="flex flex-col md:flex-row gap-4 justify-between md:items-center">
-                    <div className="relative flex-1 group">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                        <Input
-                            placeholder="Find voters by name or ID..."
-                            value={search}
-                            onChange={e => handleSearchChange(e.target.value)}
-                            className="h-11 pl-10 rounded-xl bg-white border-slate-200 focus:ring-primary/10 shadow-sm"
-                        />
+                <div className="flex flex-col gap-4">
+                    {/* Primary Row: Search and Add Voter */}
+                    <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                        <div className="relative flex-1 group">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+                            <Input
+                                placeholder="Find voters by name or ID..."
+                                value={search}
+                                onChange={e => handleSearchChange(e.target.value)}
+                                className="h-11 pl-10 rounded-xl bg-white border-slate-200 focus:ring-primary/10 shadow-sm"
+                            />
+                        </div>
+
+                        <Button
+                            onClick={handleAddClick}
+                            variant={showAdd ? "outline" : "default"}
+                            className="h-11 px-6 rounded-xl text-xs font-semibold shadow-lg shadow-primary/10 tracking-normal flex items-center gap-2 shrink-0 transition-all active:scale-95"
+                        >
+                            {showAdd ? <X className="w-4 h-4" /> : <><Plus className="w-4 h-4" /> Add Voter</>}
+                        </Button>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        <div className="grid grid-cols-2 gap-2 flex-1 md:flex-none">
+                    {/* Secondary Row: Status Filters and Danger Actions */}
+                    <div className="flex flex-col lg:flex-row gap-4 justify-between items-stretch lg:items-center">
+                        <div className="flex bg-slate-100 p-1 rounded-xl self-start sm:self-center lg:self-auto w-full sm:w-auto">
+                            {[
+                                { id: "all", label: "All Records" },
+                                { id: "voted", label: "Voted" },
+                                { id: "pending", label: "Pending" },
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleStatusChange(item.id)}
+                                    className={cn(
+                                        "px-4 py-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider rounded-lg transition-all flex-1 sm:flex-none text-center",
+                                        status === item.id || (!status && item.id === "all")
+                                            ? "bg-white text-primary shadow-sm"
+                                            : "text-slate-500 hover:text-slate-700"
+                                    )}
+                                >
+                                    {item.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center gap-2">
                             <AlertDialog>
                                 <AlertDialogTrigger render={
-                                    <Button size="sm" variant="outline" className="h-10 px-4 rounded-xl text-orange-600 border-orange-100 hover:bg-orange-50 font-bold text-[10px] uppercase tracking-wider">
+                                    <Button size="sm" variant="outline" className="h-10 flex-1 lg:flex-none px-4 rounded-xl text-orange-600 border-orange-100 hover:bg-orange-50 font-bold text-[10px] uppercase tracking-wider transition-colors">
                                         Reset Voting
                                     </Button>
                                 } />
@@ -475,7 +520,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
 
                             <AlertDialog>
                                 <AlertDialogTrigger render={
-                                    <Button size="sm" variant="outline" className="h-10 px-4 rounded-xl text-destructive border-destructive/5 hover:bg-destructive/5 font-bold text-[10px] uppercase tracking-wider">
+                                    <Button size="sm" variant="outline" className="h-10 flex-1 lg:flex-none px-4 rounded-xl text-destructive border-destructive/5 hover:bg-destructive/5 font-bold text-[10px] uppercase tracking-wider transition-colors">
                                         Delete All
                                     </Button>
                                 } />
@@ -503,14 +548,6 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                                 </AlertDialogContent>
                             </AlertDialog>
                         </div>
-
-                        <Button
-                            onClick={handleAddClick}
-                            variant={showAdd ? "outline" : "default"}
-                            className="h-10 px-5 rounded-xl text-xs font-medium shadow-lg shadow-primary/10 tracking-tight shrink-0 flex items-center gap-2"
-                        >
-                            {showAdd ? <X className="w-4 h-4" /> : <><Plus className="w-4 h-4" /> Add Voter</>}
-                        </Button>
                     </div>
                 </div>
             </div>
@@ -632,8 +669,8 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                     ) : (
                         <div className="p-20 text-center text-slate-300">
                             <Info className="w-10 h-10 opacity-10 mx-auto mb-4" />
-                            <p className="text-sm font-bold tracking-tight text-slate-900">No voters yet</p>
-                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Start by adding your first record</p>
+                            <p className="text-sm font-bold tracking-normal text-slate-900">No voters yet</p>
+                            <p className="text-[10px] font-normal tracking-normal text-slate-400 mt-1">Start by adding your first record</p>
                         </div>
                     )}
                 </div>
@@ -652,7 +689,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                         <PaginationContent className="gap-2">
                             <PaginationItem>
                                 <PaginationPrevious
-                                    href={page > 1 ? `?page=${page - 1}${search ? `&q=${search}` : ""}` : "#"}
+                                    href={page > 1 ? `?page=${page - 1}${search ? `&q=${search}` : ""}${status && status !== "all" ? `&status=${status}` : ""}` : "#"}
                                     aria-disabled={page <= 1}
                                     className={cn(
                                         "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",
@@ -669,7 +706,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
                             </PaginationItem>
                             <PaginationItem>
                                 <PaginationNext
-                                    href={page < totalPages ? `?page=${page + 1}${search ? `&q=${search}` : ""}` : "#"}
+                                    href={page < totalPages ? `?page=${page + 1}${search ? `&q=${search}` : ""}${status && status !== "all" ? `&status=${status}` : ""}` : "#"}
                                     aria-disabled={page >= totalPages}
                                     className={cn(
                                         "h-10 w-10 p-0 rounded-2xl border-slate-200 transition-all shadow-sm",
