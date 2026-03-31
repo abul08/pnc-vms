@@ -83,7 +83,7 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 onChange={e => setSelectedGroup(e.target.value)}
                                 className="w-full h-12 pl-11 pr-10 rounded-2xl border border-slate-200 bg-white text-sm font-medium focus:ring-2 focus:ring-primary appearance-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors"
                             >
-                                <option value="all">All Groups</option>
+                                <option value="all">All Boxes</option>
                                 <option value="group1">70 | Sh. Milandhoo-1</option>
                                 <option value="group2">71 | Sh. Milandhoo-2</option>
                                 <option value="group3">Male' Area</option>
