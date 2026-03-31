@@ -14,7 +14,8 @@ export default async function MarkerView() {
         supabase.from("assignments").select("assigned_value").eq("user_id", user.id).eq("type", "marker")
     ]);
 
-    if (profile?.role === "spectator") redirect("/");
+    const allowedRoles = ["admin", "marker"];
+    if (!allowedRoles.includes(profile?.role)) redirect("/");
 
     const assignedBoxes = assignments?.map(a => a.assigned_value) || [];
 

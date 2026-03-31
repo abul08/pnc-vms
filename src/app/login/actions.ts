@@ -88,6 +88,7 @@ export async function loginAction(formData: FormData) {
 
     const role = profile?.role ?? "marker";
     if (role === "admin") redirect("/admin");
-    if (role === "manager") redirect("/manager");
+    if (role === "manager") redirect("/");
+    if (role === "observer") redirect("/observer");
     redirect("/marker");
 }

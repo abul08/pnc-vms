@@ -28,7 +28,8 @@ export default async function Navbar() {
     const dashboardHref =
         role === 'admin' ? '/admin' :
             role === 'manager' ? '/manager' :
-                role === 'marker' ? '/marker' : '/';
+                role === 'marker' ? '/marker' :
+                    role === 'observer' ? '/observer' : '/';
 
     return (
         <>

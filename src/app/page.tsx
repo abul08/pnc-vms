@@ -3,11 +3,21 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { Vote, Users, CheckCircle2, Clock, ArrowRight, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import HomeRealtimeStats from "@/components/HomeRealtimeStats";
 import { getBoxTurnoutStatsAction, type BoxTurnoutStats } from "@/app/actions/voter";
 
 export default async function Home() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+        if (profile?.role === "admin") redirect("/admin");
+        if (profile?.role === "marker") redirect("/marker");
+        if (profile?.role === "observer") redirect("/observer");
+    }
+
     let totalCount = 0;
     let votedCount = 0;
     let boxStats: BoxTurnoutStats[] = [];

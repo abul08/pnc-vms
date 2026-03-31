@@ -173,7 +173,7 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
             {(filterType === "all" || filterType === "pending") && (
                 <>
                     {filterType === "pending" && (
-                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1 mb-[-12px]">
+                        <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-normal px-1">
                             Pending Voters · {pending.length}
                         </p>
                     )}
@@ -208,7 +208,7 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
                 <>
                     {voted.length > 0 ? (
                         <div className={`space-y-3 ${filterType === "all" ? "pt-4 border-t border-dashed" : ""}`}>
-                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
+                            <p className="text-[16px] font-semibold text-muted-foreground uppercase tracking-normal px-1">
                                 Already Marked · {voted.length}
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 opacity-60">

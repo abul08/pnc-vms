@@ -13,7 +13,8 @@ export default async function ManagerView() {
         getProfile(supabase, user.id),
         supabase.from("assignments").select("assigned_value").eq("user_id", user.id).eq("type", "manager")
     ]);
-    if (profile?.role === "spectator") redirect("/");
+    const allowedRoles = ["admin", "manager"];
+    if (!allowedRoles.includes(profile?.role)) redirect("/");
 
     const assignedPatches = assignments?.map(a => a.assigned_value) || [];
 
