@@ -5,24 +5,29 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import HomeRealtimeStats from "@/components/HomeRealtimeStats";
+import { getBoxTurnoutStatsAction, type BoxTurnoutStats } from "@/app/actions/voter";
 
 export default async function Home() {
     let totalCount = 0;
     let votedCount = 0;
+    let boxStats: BoxTurnoutStats[] = [];
 
     try {
         const adminSupabase = await createAdminClient();
 
         const [
-            { data: stats, error: statsError }
+            { data: stats, error: statsError },
+            fetchedBoxStats
         ] = await Promise.all([
-            adminSupabase.from("dashboard_stats").select("total_voters, voted_voters").single()
+            adminSupabase.from("dashboard_stats").select("total_voters, voted_voters").single(),
+            getBoxTurnoutStatsAction()
         ]);
 
         if (statsError) throw statsError;
 
         totalCount = stats.total_voters || 0;
         votedCount = stats.voted_voters || 0;
+        boxStats = fetchedBoxStats || [];
     } catch (e) {
         console.error("Home page data fetch failed:", e);
     }
@@ -41,7 +46,7 @@ export default async function Home() {
                 <h1 className="text-4xl md:text-6xl font-semibold tracking-tight text-foreground flex flex-col md:flex-row items-center justify-center gap-4">
                     Voter Monitor
                 </h1>
-                <p className="text-lg text-muted-foreground">
+                <p className="text-md text-muted-foreground">
                     Real-time monitoring of turnout across all polling stations and ballot boxes.
                 </p>
             </div>
@@ -49,7 +54,7 @@ export default async function Home() {
             <Card className="w-full max-w-4xl border-none shadow-lg bg-card overflow-hidden">
                 <div className="h-2 w-full bg-linear-to-r from-primary to-green-500 mt-[-18px]" />
                 <CardContent className="p-8 md:p-12">
-                    <HomeRealtimeStats initialTotal={totalCount} initialVoted={votedCount} />
+                    <HomeRealtimeStats initialTotal={totalCount} initialVoted={votedCount} initialBoxStats={boxStats} />
                 </CardContent>
             </Card>
 

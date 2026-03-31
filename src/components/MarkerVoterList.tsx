@@ -87,7 +87,7 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
         <div className="flex items-center justify-between gap-3 px-4 py-3 rounded-xl border bg-card shadow-sm">
             <div className="min-w-0">
                 <p className="font-semibold truncate">{voter.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
+                <div className="flex flex-col gap-2 mt-0.5">
                     {(voter.house_name || voter.present_address) && (
                         <p className="text-xs text-muted-foreground truncate max-w-[150px]">{voter.house_name || voter.present_address}</p>
                     )}
@@ -113,6 +113,7 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
 
 export default function MarkerVoterList({ voters: initialAssigned }: { voters: any[] }) {
     const [search, setSearch] = useState("");
+    const [filterType, setFilterType] = useState<"all" | "pending" | "voted">("all");
 
     const filteredAssigned = useMemo(() => {
         const q = search.toLowerCase().trim();
@@ -135,8 +136,8 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-3">
-                <div className="relative flex-1 max-w-md">
+            <div className="flex flex-col xl:flex-row items-center gap-3">
+                <div className="relative w-full xl:max-w-md">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                     <Input
                         type="search"
@@ -146,42 +147,85 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
                         className="pl-9 h-12 rounded-xl border-slate-200 focus:border-primary shadow-sm"
                     />
                 </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {pending.map(v => <VoterCard key={v.id} voter={v} />)}
-            </div>
-
-            {pending.length === 0 && (
-                <div className="text-center py-16 rounded-3xl border border-dashed bg-muted/20">
-                    <CheckCircle2 className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
-                    {search ? (
-                        <>
-                            <p className="font-bold text-slate-800">No matches found</p>
-                            <p className="text-muted-foreground text-sm mt-1">
-                                Check the spelling or ID and try again.
-                            </p>
-                        </>
-                    ) : (
-                        <>
-                            <p className="font-bold text-slate-800">All Assigned Done!</p>
-                            <p className="text-muted-foreground text-sm mt-1">
-                                Great job! All assigned voters in your box have voted.
-                            </p>
-                        </>
-                    )}
+                <div className="flex items-center p-1 bg-slate-100 rounded-xl w-full xl:w-auto h-12 overflow-x-auto ring-1 ring-slate-200/50">
+                    <button
+                        onClick={() => setFilterType("all")}
+                        className={`flex-1 xl:flex-none px-6 h-full text-[11px] font-bold uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${filterType === "all" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                    >
+                        All
+                    </button>
+                    <button
+                        onClick={() => setFilterType("pending")}
+                        className={`flex-1 xl:flex-none px-6 h-full text-[11px] font-bold uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${filterType === "pending" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                    >
+                        Pending
+                    </button>
+                    <button
+                        onClick={() => setFilterType("voted")}
+                        className={`flex-1 xl:flex-none px-6 h-full text-[11px] font-bold uppercase tracking-widest rounded-lg transition-all whitespace-nowrap ${filterType === "voted" ? "bg-white text-slate-800 shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
+                    >
+                        Marked Voted
+                    </button>
                 </div>
+            </div>
+
+            {(filterType === "all" || filterType === "pending") && (
+                <>
+                    {filterType === "pending" && (
+                        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1 mb-[-12px]">
+                            Pending Voters · {pending.length}
+                        </p>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {pending.map(v => <VoterCard key={v.id} voter={v} />)}
+                    </div>
+
+                    {pending.length === 0 && (
+                        <div className="text-center py-16 rounded-3xl border border-dashed bg-muted/20">
+                            <CheckCircle2 className="w-10 h-10 text-muted-foreground/20 mx-auto mb-3" />
+                            {search ? (
+                                <>
+                                    <p className="font-bold text-slate-800">No matches found</p>
+                                    <p className="text-muted-foreground text-sm mt-1">
+                                        Check the spelling or ID and try again.
+                                    </p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="font-bold text-slate-800">All Assigned Done!</p>
+                                    <p className="text-muted-foreground text-sm mt-1">
+                                        Great job! All assigned voters in your box have voted.
+                                    </p>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </>
             )}
 
-            {voted.length > 0 && (
-                <div className="space-y-3 pt-4 border-t border-dashed">
-                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
-                        Already Marked · {voted.length}
-                    </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 opacity-60">
-                        {voted.map(v => <VoterCard key={v.id} voter={v} />)}
-                    </div>
-                </div>
+            {(filterType === "all" || filterType === "voted") && (
+                <>
+                    {voted.length > 0 ? (
+                        <div className={`space-y-3 ${filterType === "all" ? "pt-4 border-t border-dashed" : ""}`}>
+                            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] px-1">
+                                Already Marked · {voted.length}
+                            </p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 opacity-60">
+                                {voted.map(v => <VoterCard key={v.id} voter={v} />)}
+                            </div>
+                        </div>
+                    ) : (
+                        filterType === "voted" && search === "" && (
+                            <div className="text-center py-16 rounded-3xl border border-dashed bg-muted/20">
+                                <p className="font-bold text-slate-800">No Votes Marked Yet</p>
+                                <p className="text-muted-foreground text-sm mt-1">
+                                    Voters that have been marked will appear here.
+                                </p>
+                            </div>
+                        )
+                    )}
+                </>
             )}
         </div>
     );
