@@ -20,7 +20,7 @@ export default function HomeRealtimeStats({
     const [totalCount, setTotalCount] = useState(initialTotal);
     const [votedCount, setVotedCount] = useState(initialVoted);
     const [boxStats, setBoxStats] = useState<BoxTurnoutStats[]>(initialBoxStats);
-    const supabase = useRef(createClient()).current;
+    const [supabase] = useState(() => createClient());
 
     useEffect(() => {
         const fetchStats = async () => {

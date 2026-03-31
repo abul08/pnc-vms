@@ -349,7 +349,7 @@ export function VotersCRUD({ initialVoters, page = 1, totalPages = 1, total = 0,
     const [editingVoter, setEditingVoter] = useState<any>(null);
     const [viewingVoter, setViewingVoter] = useState<any>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const supabaseClient = useRef(createClient()).current;
+    const [supabaseClient] = useState(() => createClient());
 
     function broadcastStats() {
         supabaseClient.channel(BROADCAST_CHANNEL).send({

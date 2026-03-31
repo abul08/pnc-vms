@@ -13,7 +13,7 @@ const BROADCAST_CHANNEL = "vms-votes";
 function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: string, voted: boolean) => void }) {
     const [isPending, startTransition] = useTransition();
     const [optimisticVoted, setOptimisticVoted] = useState<boolean>(voter.vote_status);
-    const supabase = useRef(createClient()).current;
+    const [supabase] = useState(() => createClient());
 
     useEffect(() => {
         setOptimisticVoted(voter.vote_status);

@@ -10,7 +10,7 @@ const BROADCAST_CHANNEL = "vms-votes";
 export default function ManagerRealtimeList({ initialVoters }: { initialVoters: any[] }) {
     const [voters, setVoters] = useState(initialVoters);
     const assignedIds = useRef(new Set(initialVoters.map((v: any) => v.id)));
-    const supabase = useRef(createClient()).current;
+    const [supabase] = useState(() => createClient());
 
     useEffect(() => {
         const channel = supabase

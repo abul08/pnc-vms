@@ -23,7 +23,7 @@ export default function CandidateTVView({
     const [stats, setStats] = useState(initialStats);
     const [totalCount, setTotalCount] = useState(initialTotal);
     const [votedCount, setVotedCount] = useState(initialVoted);
-    const supabase = useRef(createClient()).current;
+    const [supabase] = useState(() => createClient());
 
     useEffect(() => {
         const fetchAllData = async () => {
