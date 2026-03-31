@@ -69,6 +69,23 @@ export default async function Navbar() {
                         </div>
                     )}
 
+                    {role === 'candi' && (
+                        <div className="hidden sm:flex items-center ml-8 gap-2">
+                            <Link href="/candi">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+                                    <BarChart3 className="h-4 w-4" />
+                                    <span>Dashboard</span>
+                                </Button>
+                            </Link>
+                            <Link href="/candi/voters">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+                                    <Users className="h-4 w-4" />
+                                    <span>Voter List</span>
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+
                     <div className="ml-auto flex items-center gap-2">
                         {user && fullName && (
                             <span className="text-xs text-slate-700 font-semibold mr-2">{fullName}</span>

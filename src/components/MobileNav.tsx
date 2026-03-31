@@ -83,10 +83,11 @@ export function MobileNav({ role }: { role: string }) {
         } else if (role === 'marker') {
             router.prefetch('/');
             router.prefetch('/marker');
-        } else if (role === 'observer') {
+        } else if (role === 'observer' || role === 'candi') {
             router.prefetch('/');
-            router.prefetch('/observer');
-            router.prefetch('/observer/voters');
+            const prefix = role === 'observer' ? '/observer' : '/candi';
+            router.prefetch(prefix);
+            router.prefetch(`${prefix}/voters`);
         }
     }, [role, router]);
 
@@ -99,7 +100,7 @@ export function MobileNav({ role }: { role: string }) {
     };
 
     const checkActive = (path: string) => {
-        if (path === '/' || path === '/admin' || path === '/observer' || path === '/manager' || path === '/marker') {
+        if (path === '/' || path === '/admin' || path === '/observer' || path === '/candi' || path === '/manager' || path === '/marker') {
             return pathname === path;
         }
         return pathname.startsWith(path);
@@ -109,8 +110,9 @@ export function MobileNav({ role }: { role: string }) {
     const isManager = role === 'manager';
     const isMarker = role === 'marker';
     const isObserver = role === 'observer';
+    const isCandi = role === 'candi';
 
-    if (!isAdmin && !isManager && !isMarker && !isObserver) return null;
+    if (!isAdmin && !isManager && !isMarker && !isObserver && !isCandi) return null;
 
     return (
         <nav className="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t flex safe-bottom">
@@ -155,6 +157,16 @@ export function MobileNav({ role }: { role: string }) {
                     <MobileNavItem href="/observer" icon={BarChart3} label="Dash" isActive={checkActive('/observer')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem href="/observer/voters" icon={Users} label="Voters" isActive={checkActive('/observer/voters')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
+                </>
+            )}
+
+            {isCandi && (
+                <>
+                    <MobileNavItem href="/candi" icon={BarChart3} label="Dash" isActive={checkActive('/candi')} />
+                    <Separator orientation="vertical" className="h-auto my-3" />
+                    <MobileNavItem href="/candi/voters" icon={Users} label="Voters" isActive={checkActive('/candi/voters')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
                 </>

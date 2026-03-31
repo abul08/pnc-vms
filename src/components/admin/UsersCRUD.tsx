@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-const ROLES = ["admin", "marker", "manager", "observer"] as const;
+const ROLES = ["admin", "marker", "manager", "observer", "candi"] as const;
 const initialState = { error: undefined as string | undefined, success: false, message: undefined as string | undefined };
 
 const roleVariant: Record<string, "default" | "secondary" | "outline"> = {
@@ -16,6 +16,7 @@ const roleVariant: Record<string, "default" | "secondary" | "outline"> = {
     manager: "secondary",
     marker: "outline",
     observer: "secondary",
+    candi: "outline",
 };
 
 function UserCard({ user }: { user: any }) {
