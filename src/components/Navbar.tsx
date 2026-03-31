@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/utils/supabase/server';
 import { getUser, getProfile } from '@/utils/supabase/queries';
 import { headers } from 'next/headers';
-import { LogOut, BarChart3, Vote } from 'lucide-react';
+import { LogOut, BarChart3, Vote, Users } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from './MobileNav';
@@ -44,9 +44,26 @@ export default async function Navbar() {
                     {role === 'admin' && (
                         <div className="hidden sm:flex items-center ml-8 gap-1">
                             <Link href="/admin/candidates">
-                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
                                     <BarChart3 className="h-4 w-4" />
                                     <span>Stats</span>
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+
+                    {role === 'observer' && (
+                        <div className="hidden sm:flex items-center ml-8 gap-2">
+                            <Link href="/observer">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+                                    <BarChart3 className="h-4 w-4" />
+                                    <span>Dashboard</span>
+                                </Button>
+                            </Link>
+                            <Link href="/observer/voters">
+                                <Button variant="ghost" size="sm" className="gap-2 text-muted-foreground hover:text-primary transition-colors">
+                                    <Users className="h-4 w-4" />
+                                    <span>Voter List</span>
                                 </Button>
                             </Link>
                         </div>

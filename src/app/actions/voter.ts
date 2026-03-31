@@ -192,3 +192,58 @@ export async function getBoxTurnoutStatsAction(): Promise<BoxTurnoutStats[]> {
         return [];
     }
 }
+
+export async function getVotersByBoxGroupAction() {
+    try {
+        const adminSupabase = await createAdminClient();
+        let allVoters: any[] = [];
+        let from = 0;
+        const PAGE_SIZE = 1000;
+
+        while (true) {
+            const { data, error } = await adminSupabase
+                .from("voters")
+                .select("id, name, house_name, present_address, national_id, registered_box, vote_status, voted_at")
+                .range(from, from + PAGE_SIZE - 1);
+
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+
+            allVoters = [...allVoters, ...data];
+            if (data.length < PAGE_SIZE) break;
+            from += PAGE_SIZE;
+        }
+
+        const group3Boxes = [
+            "437 | SH. Atoll, Male'-3",
+            "529 | Hulhumale' Phase1, Ehenihen-3",
+            "550 | Hulhumale' Phase2, Ehenihen-5",
+            "559 | Vilimale', Ehenihen-2"
+        ];
+
+        const grouped = {
+            group1: [] as any[],
+            group2: [] as any[],
+            group3: [] as any[],
+            group4: [] as any[]
+        };
+
+        allVoters.forEach(v => {
+            const box = (v.registered_box || "").trim();
+            if (box === "70 | Sh. Milandhoo-1") {
+                grouped.group1.push(v);
+            } else if (box === "71 | Sh. Milandhoo-2") {
+                grouped.group2.push(v);
+            } else if (group3Boxes.includes(box)) {
+                grouped.group3.push(v);
+            } else {
+                grouped.group4.push(v);
+            }
+        });
+
+        return grouped;
+    } catch (e) {
+        console.error("Failed to fetch grouped voters:", e);
+        return { group1: [], group2: [], group3: [], group4: [] };
+    }
+}

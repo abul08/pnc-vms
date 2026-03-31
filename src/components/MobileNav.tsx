@@ -86,6 +86,7 @@ export function MobileNav({ role }: { role: string }) {
         } else if (role === 'observer') {
             router.prefetch('/');
             router.prefetch('/observer');
+            router.prefetch('/observer/voters');
         }
     }, [role, router]);
 
@@ -98,7 +99,7 @@ export function MobileNav({ role }: { role: string }) {
     };
 
     const checkActive = (path: string) => {
-        if (path === '/' || path === '/admin') {
+        if (path === '/' || path === '/admin' || path === '/observer' || path === '/manager' || path === '/marker') {
             return pathname === path;
         }
         return pathname.startsWith(path);
@@ -151,9 +152,9 @@ export function MobileNav({ role }: { role: string }) {
 
             {isObserver && (
                 <>
-                    <MobileNavItem href="/" icon={LayoutDashboard} label="Home" isActive={checkActive('/')} />
+                    <MobileNavItem href="/observer" icon={BarChart3} label="Dash" isActive={checkActive('/observer')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
-                    <MobileNavItem href="/observer" icon={BarChart3} label="Dashboard" isActive={checkActive('/observer')} />
+                    <MobileNavItem href="/observer/voters" icon={Users} label="Voters" isActive={checkActive('/observer/voters')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />
                 </>

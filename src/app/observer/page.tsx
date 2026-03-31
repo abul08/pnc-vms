@@ -47,10 +47,6 @@ export default async function ObserverPage() {
 
 
             </div>
-            <div>
-                <VoterBoxLookup label="Check Registered Box" />
-            </div>
-
             <ObserverDashboard
                 initialTotal={stats.total}
                 initialVoted={stats.voted}
