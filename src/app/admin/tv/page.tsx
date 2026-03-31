@@ -5,8 +5,10 @@ import { getCandidateStatsAction, getLiveStatsAction } from "@/app/actions/voter
 import CandidateTVView from "@/components/CandidateTVView";
 
 export default async function TVAdminPage() {
-    const turnout = await getLiveStatsAction();
-    const candidateStats = await getCandidateStatsAction();
+    const [turnout, candidateStats] = await Promise.all([
+        getLiveStatsAction(),
+        getCandidateStatsAction(),
+    ]);
 
     return (
         <div className="animate-reveal h-screen w-screen overflow-hidden flex flex-col p-4 lg:p-8 bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-100">

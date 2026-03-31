@@ -3,12 +3,15 @@ export const dynamic = "force-dynamic";
 import { ArrowLeft, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { getCandidateStatsAction, getLiveStatsAction } from "@/app/actions/voter";
+import { getCandidateStatsAction, getLiveStatsAction, getBoxTurnoutStatsAction } from "@/app/actions/voter";
 import CandidateProgress from "@/components/CandidateProgress";
 
 export default async function CandidatesAdminPage() {
-    const turnout = await getLiveStatsAction();
-    const candidateStats = await getCandidateStatsAction();
+    const [turnout, candidateStats, boxStats] = await Promise.all([
+        getLiveStatsAction(),
+        getCandidateStatsAction(),
+        getBoxTurnoutStatsAction(),
+    ]);
 
     return (
         <div className="animate-reveal md:px-20 px-4 py-8 max-w-7xl mx-auto min-h-screen">
@@ -38,6 +41,7 @@ export default async function CandidatesAdminPage() {
                 initialStats={candidateStats}
                 initialTotal={turnout.total}
                 initialVoted={turnout.voted}
+                initialBoxStats={boxStats}
             />
         </div>
     );

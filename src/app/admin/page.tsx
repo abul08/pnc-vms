@@ -12,11 +12,6 @@ import { createClient as createSupabaseAdmin } from "@supabase/supabase-js";
 
 export default async function AdminDashboard() {
     const supabase = await createClient();
-    const user = await getUser(supabase);
-
-    // We still need the profile for the welcome message
-    const profile = await getProfile(supabase, user?.id);
-
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -27,11 +22,19 @@ export default async function AdminDashboard() {
         });
     }
 
-    // Single fetch for all dashboard statistics from our optimized view
-    const { data: stats, error: statsError } = await adminAuthClient
+    // Start fetching stats concurrently
+    const statsPromise = adminAuthClient
         .from("dashboard_stats")
         .select("*")
         .single();
+
+    const user = await getUser(supabase);
+
+    // We still need the profile for the welcome message
+    const profile = await getProfile(supabase, user?.id);
+
+    // Await the stats after user profile is fetched
+    const { data: stats, error: statsError } = await statsPromise;
 
     if (statsError) {
         console.error("Error fetching dashboard stats:", statsError);

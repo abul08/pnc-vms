@@ -129,3 +129,66 @@ export async function getCandidateStatsAction() {
         return {} as Record<string, number>;
     }
 }
+
+export type BoxTurnoutStats = { label: string; total: number; voted: number; };
+
+export async function getBoxTurnoutStatsAction(): Promise<BoxTurnoutStats[]> {
+    try {
+        const adminSupabase = await createAdminClient();
+        let allVoters: { registered_box: string | null; vote_status: boolean | null }[] = [];
+        let from = 0;
+        const PAGE_SIZE = 1000;
+        
+        while (true) {
+            const { data, error } = await adminSupabase
+                .from("voters")
+                .select("registered_box, vote_status")
+                .range(from, from + PAGE_SIZE - 1);
+            
+            if (error) throw error;
+            if (!data || data.length === 0) break;
+            
+            allVoters = [...allVoters, ...data];
+            if (data.length < PAGE_SIZE) break;
+            from += PAGE_SIZE;
+        }
+
+        const groups = {
+            group1: { label: "70 | Sh. Milandhoo-1", total: 0, voted: 0 },
+            group2: { label: "71 | Sh. Milandhoo-2", total: 0, voted: 0 },
+            group3: { label: "Male', Hulhumale' & Vilimale'", total: 0, voted: 0 },
+            group4: { label: "All other boxes", total: 0, voted: 0 }
+        };
+
+        const group3Boxes = [
+            "437 | SH. Atoll, Male'-3",
+            "529 | Hulhumale' Phase1, Ehenihen-3",
+            "550 | Hulhumale' Phase2, Ehenihen-5",
+            "559 | Vilimale', Ehenihen-2"
+        ];
+
+        allVoters.forEach(v => {
+            const box = (v.registered_box || "").trim();
+            const voted = v.vote_status ? 1 : 0;
+            
+            if (box === "70 | Sh. Milandhoo-1") {
+                groups.group1.total++;
+                groups.group1.voted += voted;
+            } else if (box === "71 | Sh. Milandhoo-2") {
+                groups.group2.total++;
+                groups.group2.voted += voted;
+            } else if (group3Boxes.includes(box)) {
+                groups.group3.total++;
+                groups.group3.voted += voted;
+            } else {
+                groups.group4.total++;
+                groups.group4.voted += voted;
+            }
+        });
+
+        return [groups.group1, groups.group2, groups.group3, groups.group4];
+    } catch (e) {
+        console.error("Failed to fetch box stats:", e);
+        return [];
+    }
+}

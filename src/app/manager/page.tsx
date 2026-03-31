@@ -9,14 +9,11 @@ export default async function ManagerView() {
     const user = await getUser(supabase);
     if (!user) redirect("/login");
 
-    const profile = await getProfile(supabase, user.id);
+    const [profile, { data: assignments }] = await Promise.all([
+        getProfile(supabase, user.id),
+        supabase.from("assignments").select("assigned_value").eq("user_id", user.id).eq("type", "manager")
+    ]);
     if (profile?.role === "spectator") redirect("/");
-
-    const { data: assignments } = await supabase
-        .from("assignments")
-        .select("assigned_value")
-        .eq("user_id", user.id)
-        .eq("type", "manager");
 
     const assignedPatches = assignments?.map(a => a.assigned_value) || [];
 

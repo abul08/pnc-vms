@@ -30,7 +30,8 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
     users: any[];
     assignments: any[];
 }) {
-    const [selectedArea, setSelectedArea] = useState("");
+    const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [selectedUser, setSelectedUser] = useState("");
     const [selectedType, setSelectedType] = useState<"marker" | "manager">("marker");
 
@@ -38,8 +39,9 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
         async (_: typeof initialState, fd: FormData) => {
             const r = await assignAreaAction(fd);
             if (r?.success) {
-                setSelectedArea("");
-                toast.success(r.message || "Area assigned successfully");
+                setSelectedAreas([]);
+                setSearchTerm("");
+                toast.success(r.message || "Areas assigned successfully");
             } else if (r?.error) {
                 toast.error(r.error);
             }
@@ -62,7 +64,28 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
     );
 
     const filteredUsers = users.filter(u => u.role === selectedType);
-    const availableAreas = selectedType === "marker" ? boxes : patches;
+    const allAreas = selectedType === "marker" ? boxes : patches;
+    
+    // Filter out areas already assigned
+    const assignedAreasSet = new Set(assignments.filter(a => a.type === selectedType).map(a => a.assigned_value));
+    const availableAreas = allAreas.filter(a => !assignedAreasSet.has(a));
+    
+    // Search filter
+    const searchableAreas = availableAreas.filter(a => a.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const toggleArea = (area: string) => {
+        setSelectedAreas(prev => 
+            prev.includes(area) ? prev.filter(a => a !== area) : [...prev, area]
+        );
+    };
+
+    const toggleAll = () => {
+        if (selectedAreas.length === searchableAreas.length) {
+            setSelectedAreas([]);
+        } else {
+            setSelectedAreas(searchableAreas);
+        }
+    };
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -81,7 +104,7 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                 <Button
                                     type="button"
                                     variant={selectedType === "marker" ? "default" : "outline"}
-                                    onClick={() => { setSelectedType("marker"); setSelectedArea(""); }}
+                                    onClick={() => { setSelectedType("marker"); setSelectedAreas([]); setSearchTerm(""); }}
                                     className="h-9 text-xs"
                                 >
                                     Marker (per Box)
@@ -89,7 +112,7 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                 <Button
                                     type="button"
                                     variant={selectedType === "manager" ? "default" : "outline"}
-                                    onClick={() => { setSelectedType("manager"); setSelectedArea(""); }}
+                                    onClick={() => { setSelectedType("manager"); setSelectedAreas([]); setSearchTerm(""); }}
                                     className="h-9 text-xs"
                                 >
                                     Manager (per Patch)
@@ -98,23 +121,7 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-4">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                                    {selectedType === "marker" ? "Select Registered Box" : "Select Patch"}
-                                </label>
-                                <select
-                                    name="assigned_value"
-                                    required
-                                    value={selectedArea}
-                                    onChange={e => setSelectedArea(e.target.value)}
-                                    className="h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                >
-                                    <option value="">Select...</option>
-                                    {availableAreas.map(a => <option key={a} value={a}>{a}</option>)}
-                                </select>
-                            </div>
-
+                        <div className="space-y-3">
                             <div className="space-y-1.5">
                                 <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Assign To User</label>
                                 <select
@@ -124,16 +131,78 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                     onChange={e => setSelectedUser(e.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                                 >
-                                    <option value="">Select...</option>
+                                    <option value="">Select User...</option>
                                     {filteredUsers.map(u => <option key={u.id} value={u.id}>{u.full_name}</option>)}
                                 </select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <div className="flex items-center justify-between">
+                                    <label className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                        {selectedType === "marker" ? "Select Boxes" : "Select Patches"}
+                                    </label>
+                                    <Badge variant="secondary" className="text-[10px] tabular-nums">
+                                        {selectedAreas.length} selected
+                                    </Badge>
+                                </div>
+                                
+                                <div className="flex gap-2">
+                                    <div className="relative flex-1">
+                                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            placeholder="Search..."
+                                            value={searchTerm}
+                                            onChange={e => setSearchTerm(e.target.value)}
+                                            className="pl-9 h-9"
+                                        />
+                                    </div>
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        size="sm" 
+                                        onClick={toggleAll}
+                                        className="h-9 text-[10px] px-2"
+                                    >
+                                        {selectedAreas.length === searchableAreas.length && searchableAreas.length > 0 ? "Clear All" : "Select All"}
+                                    </Button>
+                                </div>
+
+                                <div className="border rounded-md max-h-48 overflow-y-auto mt-2 bg-slate-50/50">
+                                    <div className="p-2 grid grid-cols-1 sm:grid-cols-2 gap-1">
+                                        {searchableAreas.length > 0 ? (
+                                            searchableAreas.map(a => (
+                                                <div 
+                                                    key={a}
+                                                    onClick={() => toggleArea(a)}
+                                                    className={`
+                                                        flex items-center gap-2 p-2 rounded cursor-pointer transition-colors text-xs
+                                                        ${selectedAreas.includes(a) 
+                                                            ? "bg-primary/10 border-primary/20 border text-primary font-medium" 
+                                                            : "hover:bg-muted border border-transparent"}
+                                                    `}
+                                                >
+                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${selectedAreas.includes(a) ? "bg-primary border-primary" : "bg-white border-muted-foreground/30"}`}>
+                                                        {selectedAreas.includes(a) && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                                                    </div>
+                                                    <span className="truncate">{a}</span>
+                                                    {/* Hidden inputs to send values with the form */}
+                                                    {selectedAreas.includes(a) && <input type="hidden" name="assigned_values" value={a} />}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="col-span-full py-4 text-center text-muted-foreground text-xs italic">
+                                                {searchTerm ? "No results found." : "All areas assigned or none available."}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         {assignState?.error && <p className="text-destructive text-[10px]">{assignState.error}</p>}
-                        <Button type="submit" disabled={assignPending} className="w-full h-10">
+                        <Button type="submit" disabled={assignPending || selectedAreas.length === 0 || !selectedUser} className="w-full h-10 shadow-sm">
                             {assignPending && <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" />}
-                            Confirm Assignment
+                            Confirm {selectedAreas.length} Assignment{selectedAreas.length !== 1 ? "s" : ""}
                         </Button>
                     </form>
                 </CardContent>

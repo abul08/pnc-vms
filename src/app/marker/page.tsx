@@ -9,14 +9,12 @@ export default async function MarkerView() {
     const user = await getUser(supabase);
     if (!user) redirect("/login");
 
-    const profile = await getProfile(supabase, user.id);
-    if (profile?.role === "spectator") redirect("/");
+    const [profile, { data: assignments }] = await Promise.all([
+        getProfile(supabase, user.id),
+        supabase.from("assignments").select("assigned_value").eq("user_id", user.id).eq("type", "marker")
+    ]);
 
-    const { data: assignments } = await supabase
-        .from("assignments")
-        .select("assigned_value")
-        .eq("user_id", user.id)
-        .eq("type", "marker");
+    if (profile?.role === "spectator") redirect("/");
 
     const assignedBoxes = assignments?.map(a => a.assigned_value) || [];
 

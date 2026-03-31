@@ -15,28 +15,36 @@ async function assertAdmin() {
 export async function assignAreaAction(formData: FormData) {
     try {
         const supabase = await assertAdmin();
-        const assigned_value = formData.get("assigned_value")?.toString();
+        const assigned_values = formData.getAll("assigned_values").map(v => v.toString());
         const user_id = formData.get("user_id")?.toString();
         const type = formData.get("type")?.toString();
-        if (!assigned_value || !user_id || !type) return { error: "All fields are required" };
+        
+        if (assigned_values.length === 0 || !user_id || !type) return { error: "Selection required" };
         if (type !== "marker" && type !== "manager") return { error: "Invalid assignment type" };
 
-        // Check for existing assignment for this area/type
+        // Check for existing assignment for these areas/type
         const { data: existing } = await supabase
             .from("assignments")
-            .select("id")
+            .select("assigned_value")
             .eq("type", type)
-            .eq("assigned_value", assigned_value)
-            .maybeSingle();
+            .in("assigned_value", assigned_values);
 
-        if (existing) {
-            return { error: `This ${type === 'marker' ? 'box' : 'patch'} is already assigned.` };
+        if (existing && existing.length > 0) {
+            const list = existing.map(e => e.assigned_value).join(", ");
+            return { error: `Already assigned: ${list}` };
         }
 
-        const { error } = await supabase.from("assignments").insert({ assigned_value, user_id, type });
+        const inserts = assigned_values.map(val => ({
+            assigned_value: val,
+            user_id,
+            type
+        }));
+
+        const { error } = await supabase.from("assignments").insert(inserts);
         if (error) return { error: error.message };
+        
         revalidatePath("/admin/assignments");
-        return { success: true, message: "Area assigned." };
+        return { success: true, message: `Assigned ${assigned_values.length} items.` };
     } catch (e: any) {
         return { error: e.message };
     }
