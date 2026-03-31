@@ -146,14 +146,14 @@ export default function CandidateProgress({
                 <div key={group.title} className="space-y-6 sm:space-y-8">
                     <div className="flex items-center gap-4 px-1">
                         <div className="h-6 sm:h-8 w-1.5 bg-primary rounded-full" />
-                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800 uppercase tracking-tight">{group.title} Results</h2>
+                        <h2 className="text-xl sm:text-2xl font-semibold text-slate-800 uppercase tracking-normal">{group.title} Results</h2>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                         {group.categories.map((category) => (
                             <Card key={category.title} className="border-slate-100 shadow-sm overflow-hidden rounded-2xl">
-                                <CardHeader className="bg-slate-50/50 border-b border-slate-100 pb-[-10px]">
-                                    <CardTitle className="text-sm font-semibold uppercase tracking-normal text-slate-500 flex items-center gap-2">
+                                <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+                                    <CardTitle className="text-sm font-semibold uppercase tracking-normal text-slate-500 flex items-center justify-center gap-2 pt-2 mb-[-10px]">
                                         <TrendingUp className="w-3.5 h-3.5" />
                                         {category.title}
                                     </CardTitle>
