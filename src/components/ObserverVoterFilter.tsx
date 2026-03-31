@@ -104,13 +104,9 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                             onClick={() => setFilterType("voted")}
                             className={`flex-1 xl:flex-none px-8 h-full text-xs font-bold uppercase tracking-widest rounded-xl transition-all whitespace-nowrap ${filterType === "voted" ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-800"}`}
                         >
-                            Marked Voted
+                            Voted
                         </button>
                     </div>
-                </div>
-
-                <div className="flex items-center justify-center text-primary/50 gap-2 px-1">
-                    {totalCount} {filterType === "voted" ? "Voted" : "Pending"}
                 </div>
             </div>
 
