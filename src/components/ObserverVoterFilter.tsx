@@ -24,6 +24,39 @@ interface GroupedVoters {
     group4: Voter[];
 }
 
+function VoterCard({ voter, filterType }: { voter: Voter; filterType: "pending" | "voted" }) {
+    return (
+        <Card className="border-slate-100 shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden group">
+            <CardContent className="px-4 py-2.5">
+                <div className="flex justify-between items-start gap-3">
+                    <div className="space-y-1.5 min-w-0">
+                        <p className="font-semibold text-[16px] text-slate-800 group-hover:text-primary transition-colors truncate">
+                            {voter.name}
+                        </p>
+                        {(voter.house_name || voter.present_address) && (
+                            <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-2">
+                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
+                                <span className="truncate">{voter.house_name || voter.present_address}</span>
+                            </div>
+                        )}
+                    </div>
+                    {filterType === "voted" ? (
+                        <div className="shrink-0 flex flex-col items-end gap-2">
+                            <div className="p-2 bg-green-500/10 rounded-xl text-green-600">
+                                <CheckCircle2 className="w-5 h-5" />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-2 bg-slate-100 rounded-xl text-slate-300 group-hover:text-amber-500 group-hover:bg-amber-50 transition-colors">
+                            <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: GroupedVoters }) {
     const [search, setSearch] = useState("");
     const [filterType, setFilterType] = useState<"pending" | "voted">("pending");
@@ -114,7 +147,58 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
             <div className="grid grid-cols-1 gap-12">
                 {Object.entries(filteredData).map(([key, voters]) => {
                     if (selectedGroup !== "all" && selectedGroup !== key) return null;
-                    if (voters.length === 0 && !search) return null; // Show even if empty when searching
+                    if (voters.length === 0 && !search) return null;
+
+                    // For group4 (Other Boxes), sub-group by registered_box
+                    if (key === "group4" && voters.length > 0) {
+                        const subGroups = voters.reduce((acc: Record<string, Voter[]>, voter) => {
+                            const box = voter.registered_box?.trim() || "Unknown Box";
+                            if (!acc[box]) acc[box] = [];
+                            acc[box].push(voter);
+                            return acc;
+                        }, {});
+                        const sortedBoxes = Object.keys(subGroups).sort();
+
+                        return (
+                            <div key={key} className="space-y-6">
+                                <div className="flex items-center justify-between px-1">
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-6 w-1.5 bg-primary rounded-full" />
+                                        <h2 className="text-lg font-semibold text-slate-700 uppercase tracking-tight">
+                                            {groupLabels[key as keyof typeof groupLabels]}
+                                        </h2>
+                                    </div>
+                                    <Badge variant="secondary" className="font-bold bg-slate-100">
+                                        {voters.length}
+                                    </Badge>
+                                </div>
+
+                                <div className="space-y-8">
+                                    {sortedBoxes.map(box => (
+                                        <div key={box} className="space-y-3">
+                                            {/* Sub-group header */}
+                                            <div className="flex items-center justify-between px-1">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="h-4 w-1 bg-slate-300 rounded-full" />
+                                                    <h3 className="text-sm font-semibold text-slate-500 uppercase tracking-wide">
+                                                        {box}
+                                                    </h3>
+                                                </div>
+                                                <Badge variant="outline" className="text-xs font-semibold text-slate-400 border-slate-200">
+                                                    {subGroups[box].length}
+                                                </Badge>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                {subGroups[box].map(voter => (
+                                                    <VoterCard key={voter.id} voter={voter} filterType={filterType} />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    }
 
                     return (
                         <div key={key} className="space-y-6">
@@ -133,41 +217,7 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                             {voters.length > 0 ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {voters.map(voter => (
-                                        <Card key={voter.id} className="border-slate-100 shadow-sm hover:shadow-md transition-all rounded-2xl overflow-hidden group">
-                                            <CardContent className="p-4 sm:p-5">
-                                                <div className="flex justify-between items-start gap-3">
-                                                    <div className="space-y-1.5 min-w-0">
-                                                        <p className="font-semibold text-[16px] text-slate-800 group-hover:text-primary transition-colors truncate">
-                                                            {voter.name}
-                                                        </p>
-                                                        {(voter.house_name || voter.present_address) && (
-                                                            <div className="flex items-start gap-1.5 text-xs text-slate-500 mt-2">
-                                                                <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0 text-slate-400" />
-                                                                <span className="truncate">{voter.house_name || voter.present_address}</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {filterType === "voted" ? (
-                                                        <div className="shrink-0 flex flex-col items-end gap-2">
-                                                            <div className="p-2 bg-green-500/10 rounded-xl text-green-600">
-                                                                <CheckCircle2 className="w-5 h-5" />
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="p-2 bg-slate-100 rounded-xl text-slate-300 group-hover:text-amber-500 group-hover:bg-amber-50 transition-colors">
-                                                            <CheckCircle2 className="w-5 h-5" />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <div className=" pt-2 border-t border-slate-50 flex items-center justify-between">
-                                                    <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest truncate max-w-[180px]">
-                                                        {voter.registered_box}
-                                                    </span>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
+                                        <VoterCard key={voter.id} voter={voter} filterType={filterType} />
                                     ))}
                                 </div>
                             ) : (
