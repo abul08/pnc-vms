@@ -123,14 +123,23 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
     const [filterType, setFilterType] = useState<"all" | "pending" | "voted">("all");
 
     const filteredAssigned = useMemo(() => {
-        const q = search.toLowerCase().trim();
+        const q = search.trim();
         if (!q) return initialAssigned;
+
+        // If the query is purely numeric, only match exact listq
+        if (/^\d+$/.test(q)) {
+            return initialAssigned.filter(v =>
+                v.listq?.toString() === q
+            );
+        }
+
+        // Otherwise, do a general text search across name/address fields
+        const ql = q.toLowerCase();
         return initialAssigned.filter(v =>
-            v.name?.toLowerCase().includes(q) ||
-            v.house_name?.toLowerCase().includes(q) ||
-            v.present_address?.toLowerCase().includes(q) ||
-            v.national_id?.includes(q) ||
-            v.listq?.includes(q)
+            v.name?.toLowerCase().includes(ql) ||
+            v.house_name?.toLowerCase().includes(ql) ||
+            v.present_address?.toLowerCase().includes(ql) ||
+            v.national_id?.toLowerCase().includes(ql)
         );
     }, [initialAssigned, search]);
 
