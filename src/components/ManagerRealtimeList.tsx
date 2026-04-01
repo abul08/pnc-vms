@@ -24,7 +24,11 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
                 } else {
                     setVoters(prev => {
                         if (prev.some(v => v.id === updated.id)) return prev;
-                        return [updated, ...prev];
+                        return [...prev, updated].sort((a, b) => {
+                            const numA = a.house_number || '';
+                            const numB = b.house_number || '';
+                            return String(numA).localeCompare(String(numB), undefined, { numeric: true, sensitivity: 'base' });
+                        });
                     });
                 }
             })
@@ -34,12 +38,20 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
 
     if (voters.length === 0) {
         return (
-            <div className="text-center py-16 rounded-2xl border border-dashed">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-green-50 text-green-500 rounded-full mb-4">
-                    <CheckCircle2 className="w-8 h-8" />
+            <div className="space-y-6">
+                <div className="flex items-center justify-between px-4 pt-4 gap-3">
+                    <div>
+                        <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Patch Manager</h1>
+                        <p className="text-slate-500 text-sm mt-0.5">0 voters remaining</p>
+                    </div>
                 </div>
-                <h3 className="font-semibold text-lg">Patch Clear!</h3>
-                <p className="text-muted-foreground text-sm mt-1">All voters in your patch have voted.</p>
+                <div className="text-center py-16 rounded-2xl border border-dashed">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-green-50 text-green-500 rounded-full mb-4">
+                        <CheckCircle2 className="w-8 h-8" />
+                    </div>
+                    <h3 className="font-semibold text-lg">Patch Clear!</h3>
+                    <p className="text-muted-foreground text-sm mt-1">All voters in your patch have voted.</p>
+                </div>
             </div>
         );
     }
@@ -48,7 +60,7 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
         const key = voter.house_number || 'No House Number';
         let group = acc.find(g => g.houseNumber === key);
         if (!group) {
-            group = { houseNumber: key, voters: [] };
+            group = { houseNumber: key, house_name: voter.house_name || `House ${key}`, voters: [] };
             acc.push(group);
         }
         group.voters.push(voter);
@@ -57,6 +69,12 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
 
     return (
         <div className="space-y-6">
+            <div className="flex items-center justify-between px-4 pt-4 gap-3">
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Patch Manager</h1>
+                    <p className="text-slate-500 text-sm mt-0.5">{voters.length} voter{voters.length !== 1 ? 's' : ''} remaining</p>
+                </div>
+            </div>
             {groupedVoters.map((group) => (
                 <div key={group.houseNumber} className="space-y-3">
                     <h2 className="font-bold text-lg text-slate-800 flex items-center gap-2">

@@ -29,12 +29,6 @@ export default async function ManagerView() {
 
     return (
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4">
-            <div className="flex items-center justify-between px-4 pt-4 gap-3">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-slate-900 ">Patch Manager</h1>
-                    <p className="text-slate-500 text-sm mt-0.5">{unvoted.length} voter{unvoted.length !== 1 ? 's' : ''} remaining</p>
-                </div>
-            </div>
             <ManagerRealtimeList initialVoters={unvoted} />
         </div>
     );
