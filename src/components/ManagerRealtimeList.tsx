@@ -61,7 +61,7 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
                 <div key={group.houseNumber} className="space-y-3">
                     <h2 className="font-bold text-lg text-slate-800 flex items-center gap-2">
                         <span className="bg-primary/10 text-primary px-3 py-1 rounded-lg text-sm">
-                            House {group.houseNumber}
+                            {group.house_name}
                         </span>
                         <span className="text-sm text-muted-foreground font-normal">
                             ({group.voters.length} remaining)
