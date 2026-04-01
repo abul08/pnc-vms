@@ -57,40 +57,53 @@ function VoterCard({ voter, filterType }: { voter: Voter; filterType: "pending" 
     );
 }
 
+// Module-level constant — never recreated
+const GROUP_LABELS = {
+    group1: "70 | Sh. Milandhoo-1",
+    group2: "71 | Sh. Milandhoo-2",
+    group3: "Male' Area",
+    group4: "Other Boxes"
+} as const;
+
 export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: GroupedVoters }) {
     const [search, setSearch] = useState("");
     const [filterType, setFilterType] = useState<"pending" | "voted">("pending");
     const [selectedGroup, setSelectedGroup] = useState<string>("all");
 
-    const groupLabels = {
-        group1: "70 | Sh. Milandhoo-1",
-        group2: "71 | Sh. Milandhoo-2",
-        group3: "Male' Area",
-        group4: "Other Boxes"
-    };
-
-    const getFilteredList = (voters: Voter[]) => {
+    // Inline filter logic directly in useMemo — avoids stale-closure dep bug
+    const filteredData = useMemo(() => {
         const q = search.toLowerCase().trim();
-        return voters.filter(v => {
-            const matchesSearch = !q ||
-                v.name?.toLowerCase().includes(q) ||
-                v.national_id?.includes(q) ||
-                v.house_name?.toLowerCase().includes(q);
-            const matchesStatus = filterType === "voted" ? v.vote_status : !v.vote_status;
-            return matchesSearch && matchesStatus;
-        });
-    };
+        const filterFn = (voters: Voter[]) =>
+            voters.filter(v => {
+                const matchesSearch = !q ||
+                    v.name?.toLowerCase().includes(q) ||
+                    v.national_id?.includes(q) ||
+                    v.house_name?.toLowerCase().includes(q);
+                const matchesStatus = filterType === "voted" ? v.vote_status : !v.vote_status;
+                return matchesSearch && matchesStatus;
+            });
+        return {
+            group1: filterFn(groupedVoters.group1),
+            group2: filterFn(groupedVoters.group2),
+            group3: filterFn(groupedVoters.group3),
+            group4: filterFn(groupedVoters.group4),
+        };
+    }, [groupedVoters, search, filterType]);
 
-    const filteredData = useMemo(() => ({
-        group1: getFilteredList(groupedVoters.group1),
-        group2: getFilteredList(groupedVoters.group2),
-        group3: getFilteredList(groupedVoters.group3),
-        group4: getFilteredList(groupedVoters.group4)
-    }), [groupedVoters, search, filterType]);
+    // Memoize group4 sub-grouping — avoids reduce+sort on every render
+    const group4SubGroups = useMemo(() => {
+        const map = filteredData.group4.reduce((acc: Record<string, Voter[]>, voter) => {
+            const box = voter.registered_box?.trim() || "Unknown Box";
+            if (!acc[box]) acc[box] = [];
+            acc[box].push(voter);
+            return acc;
+        }, {});
+        return { map, sortedBoxes: Object.keys(map).sort() };
+    }, [filteredData.group4]);
 
-    const totalCount = useMemo(() => {
-        return filteredData.group1.length + filteredData.group2.length + filteredData.group3.length + filteredData.group4.length;
-    }, [filteredData]);
+    const totalCount =
+        filteredData.group1.length + filteredData.group2.length +
+        filteredData.group3.length + filteredData.group4.length;
 
     return (
         <div className="space-y-8 pb-12">
@@ -149,23 +162,15 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                     if (selectedGroup !== "all" && selectedGroup !== key) return null;
                     if (voters.length === 0 && !search) return null;
 
-                    // For group4 (Other Boxes), sub-group by registered_box
+                    // For group4 (Other Boxes), render using pre-memoized sub-groups
                     if (key === "group4" && voters.length > 0) {
-                        const subGroups = voters.reduce((acc: Record<string, Voter[]>, voter) => {
-                            const box = voter.registered_box?.trim() || "Unknown Box";
-                            if (!acc[box]) acc[box] = [];
-                            acc[box].push(voter);
-                            return acc;
-                        }, {});
-                        const sortedBoxes = Object.keys(subGroups).sort();
-
                         return (
                             <div key={key} className="space-y-6">
                                 <div className="flex items-center justify-between px-1">
                                     <div className="flex items-center gap-4">
                                         <div className="h-6 w-1.5 bg-primary rounded-full" />
                                         <h2 className="text-lg font-semibold text-slate-700 uppercase tracking-tight">
-                                            {groupLabels[key as keyof typeof groupLabels]}
+                                            {GROUP_LABELS[key as keyof typeof GROUP_LABELS]}
                                         </h2>
                                     </div>
                                     <Badge variant="secondary" className="font-bold bg-slate-100">
@@ -174,7 +179,7 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 </div>
 
                                 <div className="space-y-8">
-                                    {sortedBoxes.map(box => (
+                                    {group4SubGroups.sortedBoxes.map(box => (
                                         <div key={box} className="space-y-3">
                                             {/* Sub-group header */}
                                             <div className="flex items-center justify-between px-1">
@@ -185,11 +190,11 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                                     </h3>
                                                 </div>
                                                 <Badge variant="outline" className="text-xs font-semibold text-slate-400 border-slate-200">
-                                                    {subGroups[box].length}
+                                                    {group4SubGroups.map[box].length}
                                                 </Badge>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                {subGroups[box].map(voter => (
+                                                {group4SubGroups.map[box].map(voter => (
                                                     <VoterCard key={voter.id} voter={voter} filterType={filterType} />
                                                 ))}
                                             </div>
@@ -206,7 +211,7 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 <div className="flex items-center gap-4">
                                     <div className="h-6 w-1.5 bg-primary rounded-full" />
                                     <h2 className="text-lg font-semibold text-slate-700 uppercase tracking-tight">
-                                        {groupLabels[key as keyof typeof groupLabels]}
+                                        {GROUP_LABELS[key as keyof typeof GROUP_LABELS]}
                                     </h2>
                                 </div>
                                 <Badge variant="secondary" className="font-bold bg-slate-100">
