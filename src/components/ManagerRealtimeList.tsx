@@ -50,8 +50,10 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
                 <div key={voter.id} className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl border bg-card">
                     <div className="min-w-0">
                         <p className="font-semibold truncate">{voter.name}</p>
-                        {(voter.house_name || voter.present_address) && (
-                            <p className="text-sm text-muted-foreground truncate">{voter.house_name || voter.present_address}</p>
+                        {(voter.house_name || voter.present_address || voter.house_number) && (
+                            <p className="text-sm text-muted-foreground truncate">
+                                {[voter.house_name || voter.present_address, voter.house_number ? `No. ${voter.house_number}` : ''].filter(Boolean).join(', ')}
+                            </p>
                         )}
                     </div>
                     {voter.contact ? (

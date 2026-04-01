@@ -21,10 +21,11 @@ export default async function ManagerView() {
     const { data: voters } = await supabase
         .from("voters")
         .select("*")
-        .in("patch", assignedPatches);
+        .in("patch", assignedPatches)
+        .order("house_number", { ascending: true });
 
     const votersList = voters || [];
-    const unvoted = votersList.filter((v: any) => v && !v.vote_status);
+    const unvoted = votersList.filter((v: any) => v && !v.vote_status && String(v.mdp).trim() !== "10");
 
     return (
         <div className="max-w-7xl mx-auto p-3 sm:p-6 space-y-4">
