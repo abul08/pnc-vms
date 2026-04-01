@@ -16,6 +16,7 @@ export default async function Home() {
         if (profile?.role === "admin") redirect("/admin");
         if (profile?.role === "marker") redirect("/marker");
         if (profile?.role === "observer") redirect("/observer");
+        if (profile?.role === "candi") redirect("/candi");
     }
 
     let totalCount = 0;

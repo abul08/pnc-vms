@@ -53,6 +53,7 @@ export function CreateUserForm() {
                         <option value="manager">Manager</option>
                         <option value="admin">Admin</option>
                         <option value="observer">Observer</option>
+                        <option value="candi">Candidate</option>
                         <option value="spectator">Spectator</option>
                     </select>
                 </div>

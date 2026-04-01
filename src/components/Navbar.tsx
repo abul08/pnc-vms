@@ -29,7 +29,8 @@ export default async function Navbar() {
         role === 'admin' ? '/admin' :
             role === 'manager' ? '/manager' :
                 role === 'marker' ? '/marker' :
-                    role === 'observer' ? '/observer' : '/';
+                    role === 'observer' ? '/observer' :
+                        role === 'candi' ? '/candi' : '/';
 
     return (
         <>
