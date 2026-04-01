@@ -48,6 +48,9 @@ export async function uploadExcelAction(formData: FormData) {
             return {
                 name: getVal(['name', 'full name', 'voter name', 'full_name']) || 'Unknown',
                 house_name: getVal(['house', 'address', 'house name', 'house_name']),
+                house_number: getVal(['house number', 'house_number', 'house no', 'house_no']),
+                listq: getVal(['listq', 'list q']),
+                mdp: getVal(['mdp', 'party']),
                 registered_box: getVal(['box', 'registered box', 'registered_box', 'ballot box']),
                 patch: getVal(['patch', 'area', 'zone']),
                 national_id: getVal(['id', 'id card', 'national id', 'national_id']),

@@ -55,9 +55,12 @@ const initialState = { error: undefined as string | undefined, success: false, m
 const FIELDS = [
     { name: "name", label: "Name", required: true },
     { name: "house_name", label: "House" },
+    { name: "house_number", label: "House No" },
     { name: "national_id", label: "National ID" },
     { name: "registered_box", label: "Box" },
     { name: "patch", label: "Patch" },
+    { name: "listq", label: "List Q" },
+    { name: "mdp", label: "MDP" },
     { name: "contact", label: "Contact" },
     { name: "present_location", label: "Present Location" },
 ] as const;
