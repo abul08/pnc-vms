@@ -91,11 +91,18 @@ function VoterCard({ voter, onVoteChange }: { voter: any, onVoteChange?: (id: st
                     {(voter.house_name || voter.present_address) && (
                         <p className="text-xs text-muted-foreground truncate max-w-[150px]">{voter.house_name || voter.present_address}</p>
                     )}
-                    {voter.registered_box && (
-                        <Badge variant="outline" className="text-[10px] h-4 px-1 font-semibold tabular-nums border-primary/20 text-primary">
-                            Box {voter.registered_box}
-                        </Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {voter.registered_box && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1 font-semibold tabular-nums border-primary/20 text-primary">
+                                Box {voter.registered_box}
+                            </Badge>
+                        )}
+                        {voter.listq && (
+                            <Badge variant="outline" className="text-[10px] h-4 px-1 font-semibold tabular-nums border-slate-200 text-slate-500">
+                                List Q. {voter.listq}
+                            </Badge>
+                        )}
+                    </div>
                 </div>
             </div>
             <Button
@@ -122,7 +129,8 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
             v.name?.toLowerCase().includes(q) ||
             v.house_name?.toLowerCase().includes(q) ||
             v.present_address?.toLowerCase().includes(q) ||
-            v.national_id?.includes(q)
+            v.national_id?.includes(q) ||
+            v.listq?.includes(q)
         );
     }, [initialAssigned, search]);
 
