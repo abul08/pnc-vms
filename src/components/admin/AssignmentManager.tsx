@@ -18,7 +18,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Loader2, UserPlus, Trash2, User } from "lucide-react";
+import { Search, Loader2, UserPlus, Trash2, User, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -153,8 +153,18 @@ export function AssignmentManager({ boxes, patches, users, assignments }: {
                                             placeholder="Search..."
                                             value={searchTerm}
                                             onChange={e => setSearchTerm(e.target.value)}
-                                            className="pl-9 h-9"
+                                            className="pl-9 pr-8 h-9"
                                         />
+                                        {searchTerm && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setSearchTerm("")}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-500 transition-colors"
+                                                aria-label="Clear search"
+                                            >
+                                                <X className="w-2.5 h-2.5" />
+                                            </button>
+                                        )}
                                     </div>
                                     <Button 
                                         type="button" 

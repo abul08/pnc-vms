@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, MapPin, CheckCircle2, User, ChevronDown, Filter } from "lucide-react";
+import { Search, MapPin, CheckCircle2, ChevronDown, Filter, X } from "lucide-react";
 
 interface Voter {
     id: string;
@@ -118,8 +118,18 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 placeholder="Search by name or ID..."
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="pl-11 h-12 rounded-2xl border-slate-200 focus:ring-primary shadow-sm"
+                                className="pl-11 pr-10 h-12 rounded-2xl border-slate-200 focus:ring-primary shadow-sm"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-500 transition-colors"
+                                    aria-label="Clear search"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
                         </div>
 
                         <div className="relative flex-1 md:max-w-xs">
@@ -156,11 +166,36 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                 </div>
             </div>
 
-            {/* Grouped Content */}
+            {/* Search Results — flat list across all groups */}
+            {search.trim() ? (
+                <div className="space-y-4">
+                    <p className="text-sm font-semibold text-slate-400 uppercase tracking-wider px-1">
+                        {totalCount} result{totalCount !== 1 ? "s" : ""} for &ldquo;{search.trim()}&rdquo;
+                    </p>
+                    {totalCount > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[...filteredData.group1, ...filteredData.group2, ...filteredData.group3, ...filteredData.group4].map(voter => (
+                                <VoterCard key={voter.id} voter={voter} filterType={filterType} />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-24">
+                            <div className="inline-flex p-6 bg-slate-100 rounded-full mb-6">
+                                <Search className="w-12 h-12 text-slate-300" />
+                            </div>
+                            <h3 className="text-2xl font-bold text-slate-800">No matches found</h3>
+                            <p className="text-slate-500 mt-2 max-w-md mx-auto">
+                                We couldn&apos;t find any voters matching your search.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            ) : (
+            /* Grouped Content — shown only when not searching */
             <div className="grid grid-cols-1 gap-12">
                 {Object.entries(filteredData).map(([key, voters]) => {
                     if (selectedGroup !== "all" && selectedGroup !== key) return null;
-                    if (voters.length === 0 && !search) return null;
+                    if (voters.length === 0) return null;
 
                     // For group4 (Other Boxes), render using pre-memoized sub-groups
                     if (key === "group4" && voters.length > 0) {
@@ -181,7 +216,6 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 <div className="space-y-8">
                                     {group4SubGroups.sortedBoxes.map(box => (
                                         <div key={box} className="space-y-3">
-                                            {/* Sub-group header */}
                                             <div className="flex items-center justify-between px-1">
                                                 <div className="flex items-center gap-2">
                                                     <div className="h-4 w-1 bg-slate-300 rounded-full" />
@@ -219,32 +253,15 @@ export default function ObserverVoterFilter({ groupedVoters }: { groupedVoters: 
                                 </Badge>
                             </div>
 
-                            {voters.length > 0 ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {voters.map(voter => (
-                                        <VoterCard key={voter.id} voter={voter} filterType={filterType} />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 rounded-3xl border-2 border-dashed border-slate-100 bg-slate-50/30">
-                                    <p className="text-slate-400 font-medium italic">No voters found in this category.</p>
-                                </div>
-                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {voters.map(voter => (
+                                    <VoterCard key={voter.id} voter={voter} filterType={filterType} />
+                                ))}
+                            </div>
                         </div>
                     );
                 })}
             </div>
-
-            {totalCount === 0 && (
-                <div className="text-center py-24">
-                    <div className="inline-flex p-6 bg-slate-100 rounded-full mb-6">
-                        <Search className="w-12 h-12 text-slate-300" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-slate-800">No matches found</h3>
-                    <p className="text-slate-500 mt-2 max-w-md mx-auto">
-                        We couldn't find any voters matching your search or filters in any of the box groups.
-                    </p>
-                </div>
             )}
         </div>
     );

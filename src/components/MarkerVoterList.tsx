@@ -5,7 +5,7 @@ import { markVoterDoneAction, revertVoterAction } from "@/app/actions/voter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, RotateCcw, Search } from "lucide-react";
+import { CheckCircle2, RotateCcw, Search, X } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
 const BROADCAST_CHANNEL = "vms-votes";
@@ -161,8 +161,18 @@ export default function MarkerVoterList({ voters: initialAssigned }: { voters: a
                         placeholder="Search assigned voters..."
                         value={search}
                         onChange={e => handleSearch(e.target.value)}
-                        className="pl-9 h-12 rounded-xl border-slate-200 focus:border-primary shadow-sm"
+                        className="pl-9 pr-9 h-12 rounded-xl border-slate-200 focus:border-primary shadow-sm"
                     />
+                    {search && (
+                        <button
+                            type="button"
+                            onClick={() => handleSearch("")}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-500 transition-colors"
+                            aria-label="Clear search"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    )}
                 </div>
 
                 <div className="flex items-center p-1 bg-slate-100 rounded-xl w-full xl:w-auto h-12 overflow-x-auto ring-1 ring-slate-200/50">

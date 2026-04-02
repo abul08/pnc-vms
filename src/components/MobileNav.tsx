@@ -78,7 +78,6 @@ export function MobileNav({ role }: { role: string }) {
             router.prefetch('/admin/assignments');
             router.prefetch('/admin/candidates');
         } else if (role === 'manager') {
-            router.prefetch('/');
             router.prefetch('/manager');
         } else if (role === 'marker') {
             router.prefetch('/');
@@ -134,8 +133,6 @@ export function MobileNav({ role }: { role: string }) {
 
             {isManager && (
                 <>
-                    <MobileNavItem href="/" icon={LayoutDashboard} label="Home" isActive={checkActive('/')} />
-                    <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem href="/manager" icon={Monitor} label="Patch View" isActive={checkActive('/manager')} />
                     <Separator orientation="vertical" className="h-auto my-3" />
                     <MobileNavItem icon={LogOut} label="Out" onClick={handleLogout} isPending={isLoggingOut} />

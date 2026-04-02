@@ -5,7 +5,7 @@ import { lookupVoterByIdAction } from "@/app/actions/lookup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { MapPin, Search, Loader2 } from "lucide-react";
+import { MapPin, Search, Loader2, X } from "lucide-react";
 
 export default function VoterBoxLookup({ label = "Check Registered Box" }: { label?: string }) {
     const [open, setOpen] = useState(false);
@@ -85,6 +85,16 @@ export default function VoterBoxLookup({ label = "Check Registered Box" }: { lab
                                 placeholder="Type name or National ID…"
                                 className="pl-9 pr-9 text-md"
                             />
+                            {query && !isPending && (
+                                <button
+                                    type="button"
+                                    onClick={() => { setQuery(""); setSelected(null); setSuggestions([]); }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300 text-slate-500 transition-colors"
+                                    aria-label="Clear search"
+                                >
+                                    <X className="w-3 h-3" />
+                                </button>
+                            )}
                         </div>
 
                         {/* Suggestion dropdown */}
