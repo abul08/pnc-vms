@@ -21,7 +21,7 @@ export default async function MarkerView() {
 
     const { data: voters } = await supabase
         .from("voters")
-        .select("*")
+        .select("id, name, house_name, house_number, present_address, national_id, registered_box, listq, contact, vote_status")
         .in("registered_box", assignedBoxes);
 
     const votersList = voters || [];

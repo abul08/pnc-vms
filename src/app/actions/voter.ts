@@ -37,7 +37,6 @@ export async function markVoterDoneAction(voterId: string) {
 
     revalidatePath("/marker");
     revalidatePath("/manager");
-    revalidatePath("/");
 
     return { success: true };
 }
@@ -67,7 +66,6 @@ export async function revertVoterAction(voterId: string) {
 
     revalidatePath("/marker");
     revalidatePath("/manager");
-    revalidatePath("/");
     return { success: true };
 }
 
@@ -135,30 +133,6 @@ export type BoxTurnoutStats = { label: string; total: number; voted: number; };
 export async function getBoxTurnoutStatsAction(): Promise<BoxTurnoutStats[]> {
     try {
         const adminSupabase = await createAdminClient();
-        let allVoters: { registered_box: string | null; vote_status: boolean | null }[] = [];
-        let from = 0;
-        const PAGE_SIZE = 1000;
-        
-        while (true) {
-            const { data, error } = await adminSupabase
-                .from("voters")
-                .select("registered_box, vote_status")
-                .range(from, from + PAGE_SIZE - 1);
-            
-            if (error) throw error;
-            if (!data || data.length === 0) break;
-            
-            allVoters = [...allVoters, ...data];
-            if (data.length < PAGE_SIZE) break;
-            from += PAGE_SIZE;
-        }
-
-        const groups = {
-            group1: { label: "70 | Sh. Milandhoo-1", total: 0, voted: 0 },
-            group2: { label: "71 | Sh. Milandhoo-2", total: 0, voted: 0 },
-            group3: { label: "Male', Hulhumale' & Vilimale'", total: 0, voted: 0 },
-            group4: { label: "All other boxes", total: 0, voted: 0 }
-        };
 
         const group3Boxes = [
             "437 | SH. Atoll, Male'-3",
@@ -167,26 +141,32 @@ export async function getBoxTurnoutStatsAction(): Promise<BoxTurnoutStats[]> {
             "559 | Vilimale', Ehenihen-2"
         ];
 
-        allVoters.forEach(v => {
-            const box = (v.registered_box || "").trim();
-            const voted = v.vote_status ? 1 : 0;
-            
-            if (box === "70 | Sh. Milandhoo-1") {
-                groups.group1.total++;
-                groups.group1.voted += voted;
-            } else if (box === "71 | Sh. Milandhoo-2") {
-                groups.group2.total++;
-                groups.group2.voted += voted;
-            } else if (group3Boxes.includes(box)) {
-                groups.group3.total++;
-                groups.group3.voted += voted;
-            } else {
-                groups.group4.total++;
-                groups.group4.voted += voted;
-            }
-        });
+        // Fire 4 lightweight COUNT queries in parallel instead of fetching all rows
+        const [r1total, r1voted, r2total, r2voted, r3total, r3voted, rAll] = await Promise.all([
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).eq("registered_box", "70 | Sh. Milandhoo-1"),
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).eq("registered_box", "70 | Sh. Milandhoo-1").eq("vote_status", true),
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).eq("registered_box", "71 | Sh. Milandhoo-2"),
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).eq("registered_box", "71 | Sh. Milandhoo-2").eq("vote_status", true),
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).in("registered_box", group3Boxes),
+            adminSupabase.from("voters").select("id", { count: "exact", head: true }).in("registered_box", group3Boxes).eq("vote_status", true),
+            adminSupabase.from("dashboard_stats").select("total_voters, voted_voters").single(),
+        ]);
 
-        return [groups.group1, groups.group2, groups.group3, groups.group4];
+        const g1total = r1total.count ?? 0;
+        const g1voted = r1voted.count ?? 0;
+        const g2total = r2total.count ?? 0;
+        const g2voted = r2voted.count ?? 0;
+        const g3total = r3total.count ?? 0;
+        const g3voted = r3voted.count ?? 0;
+        const allTotal = rAll.data?.total_voters ?? 0;
+        const allVoted = rAll.data?.voted_voters ?? 0;
+
+        return [
+            { label: "70 | Sh. Milandhoo-1",            total: g1total, voted: g1voted },
+            { label: "71 | Sh. Milandhoo-2",            total: g2total, voted: g2voted },
+            { label: "Male', Hulhumale' & Vilimale'",    total: g3total, voted: g3voted },
+            { label: "All other boxes",                  total: Math.max(0, allTotal - g1total - g2total - g3total), voted: Math.max(0, allVoted - g1voted - g2voted - g3voted) },
+        ];
     } catch (e) {
         console.error("Failed to fetch box stats:", e);
         return [];
@@ -196,23 +176,6 @@ export async function getBoxTurnoutStatsAction(): Promise<BoxTurnoutStats[]> {
 export async function getVotersByBoxGroupAction() {
     try {
         const adminSupabase = await createAdminClient();
-        let allVoters: any[] = [];
-        let from = 0;
-        const PAGE_SIZE = 1000;
-
-        while (true) {
-            const { data, error } = await adminSupabase
-                .from("voters")
-                .select("id, name, house_name, present_address, national_id, registered_box, vote_status, voted_at")
-                .range(from, from + PAGE_SIZE - 1);
-
-            if (error) throw error;
-            if (!data || data.length === 0) break;
-
-            allVoters = [...allVoters, ...data];
-            if (data.length < PAGE_SIZE) break;
-            from += PAGE_SIZE;
-        }
 
         const group3Boxes = [
             "437 | SH. Atoll, Male'-3",
@@ -221,27 +184,21 @@ export async function getVotersByBoxGroupAction() {
             "559 | Vilimale', Ehenihen-2"
         ];
 
-        const grouped = {
-            group1: [] as any[],
-            group2: [] as any[],
-            group3: [] as any[],
-            group4: [] as any[]
+        // Fetch each group in parallel — single query each, avoids sequential while-loop RTTs
+        const COLS = "id, name, house_name, present_address, national_id, registered_box, vote_status, voted_at";
+        const [res1, res2, res3, res4] = await Promise.all([
+            adminSupabase.from("voters").select(COLS).eq("registered_box", "70 | Sh. Milandhoo-1").limit(2000),
+            adminSupabase.from("voters").select(COLS).eq("registered_box", "71 | Sh. Milandhoo-2").limit(2000),
+            adminSupabase.from("voters").select(COLS).in("registered_box", group3Boxes).limit(2000),
+            adminSupabase.from("voters").select(COLS).not("registered_box", "in", `(${["70 | Sh. Milandhoo-1", "71 | Sh. Milandhoo-2", ...group3Boxes].map(b => `"${b}"`).join(",")})`).limit(5000),
+        ]);
+
+        return {
+            group1: res1.data ?? [],
+            group2: res2.data ?? [],
+            group3: res3.data ?? [],
+            group4: res4.data ?? [],
         };
-
-        allVoters.forEach(v => {
-            const box = (v.registered_box || "").trim();
-            if (box === "70 | Sh. Milandhoo-1") {
-                grouped.group1.push(v);
-            } else if (box === "71 | Sh. Milandhoo-2") {
-                grouped.group2.push(v);
-            } else if (group3Boxes.includes(box)) {
-                grouped.group3.push(v);
-            } else {
-                grouped.group4.push(v);
-            }
-        });
-
-        return grouped;
     } catch (e) {
         console.error("Failed to fetch grouped voters:", e);
         return { group1: [], group2: [], group3: [], group4: [] };

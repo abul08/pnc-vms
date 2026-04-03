@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Users, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { getLiveStatsAction, getBoxTurnoutStatsAction, type BoxTurnoutStats } from "@/app/actions/voter";
+import { getLiveStatsAction, type BoxTurnoutStats } from "@/app/actions/voter";
 
 const BROADCAST_CHANNEL = "vms-votes";
 
@@ -24,13 +24,11 @@ export default function HomeRealtimeStats({
 
     useEffect(() => {
         const fetchStats = async () => {
-            const [stats, newBoxStats] = await Promise.all([
-                getLiveStatsAction(),
-                getBoxTurnoutStatsAction()
-            ]);
+            // Only refresh the lightweight total/voted counts in realtime.
+            // Box stats are loaded from SSR and are accurate enough without live updates.
+            const stats = await getLiveStatsAction();
             setTotalCount(stats.total);
             setVotedCount(stats.voted);
-            setBoxStats(newBoxStats);
         };
 
         const channel = supabase
