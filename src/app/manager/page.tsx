@@ -20,7 +20,7 @@ export default async function ManagerView() {
 
     const { data: voters } = await supabase
         .from("voters")
-        .select("*")
+        .select("id, name, house_name, house_number, national_id, registered_box, patch, contact, vote_status, mdp, incharge")
         .in("patch", assignedPatches)
         .order("house_number", { ascending: true });
 

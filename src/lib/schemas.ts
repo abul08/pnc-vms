@@ -27,6 +27,7 @@ export const voterSchema = z.object({
     national_id: z.string().optional().nullable(),
     present_location: z.string().optional().nullable(),
     contact: z.string().optional().nullable(),
+    incharge: z.string().optional().nullable(),
     vote_status: z.boolean().default(false),
     voted_at: z.string().datetime().optional().nullable(),
     nihadh: z.coerce.number().default(0),

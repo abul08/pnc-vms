@@ -62,6 +62,7 @@ const FIELDS = [
     { name: "listq", label: "List Q" },
     { name: "mdp", label: "MDP" },
     { name: "contact", label: "Contact" },
+    { name: "incharge", label: "Incharge" },
     { name: "present_location", label: "Present Location" },
 ] as const;
 
@@ -100,6 +101,7 @@ function VoterDetailModal({ voter, open, onOpenChange }: { voter: any; open: boo
                             { icon: Hash, label: "Registered Box", value: voter.registered_box, highlight: true },
                             { icon: Hash, label: "Patch", value: voter.patch, highlight: true },
                             { icon: Phone, label: "Contact", value: voter.contact },
+                            { icon: User, label: "Incharge", value: voter.incharge },
                         ].map((item, idx) => (
                             <div key={idx} className={cn("flex flex-col gap-1", idx > 0 && "mt-[-10px]")}>
                                 <div className="flex items-center gap-2">

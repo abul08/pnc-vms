@@ -56,6 +56,7 @@ export async function uploadExcelAction(formData: FormData) {
                 national_id: getVal(['id', 'id card', 'national id', 'national_id']),
                 present_location: getVal(['location', 'present location', 'present_location', 'address', 'present_address']),
                 contact: getVal(['contact', 'phone', 'mobile']),
+                incharge: getVal(['incharge', 'in charge', 'in_charge', 'responsible']),
             };
         });
 

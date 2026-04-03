@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Phone, PhoneCallIcon, PhoneIcon } from "lucide-react";
+import { CheckCircle2, Phone, UserRound } from "lucide-react";
 
 const BROADCAST_CHANNEL = "vms-votes";
 
@@ -89,11 +89,22 @@ export default function ManagerRealtimeList({ initialVoters }: { initialVoters: 
                         {group.voters.map((voter: any) => (
                             <div key={voter.id} className="flex items-center justify-between gap-3 px-4 py-2 rounded-xl border bg-card">
                                 <div className="min-w-0">
-                                    <p className="font-semibold truncate">{voter.name}</p>
-                                    {(voter.contact || voter.present_address) && (
-                                        <p className="text-sm text-muted-foreground truncate">
-                                            {[voter.contact || voter.present_address].filter(Boolean).join(', ')}
-                                        </p>
+                                    <p className="font-semibold text-gray-700 truncate">{voter.name}</p>
+                                    {(voter.incharge || voter.contact) && (
+                                        <div className="flex items-center gap-1.5 mt-0.5 text-xs truncate">
+                                            {voter.incharge && (
+                                                <span className="text-primary font-medium truncate flex items-center gap-1">
+                                                    <UserRound className="w-3 h-3 shrink-0" />
+                                                    {voter.incharge}
+                                                </span>
+                                            )}
+                                            {voter.incharge && voter.contact && (
+                                                <span className="text-slate-300 shrink-0">·</span>
+                                            )}
+                                            {voter.contact && (
+                                                <span className="text-muted-foreground truncate">{voter.contact}</span>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                                 {voter.contact ? (
