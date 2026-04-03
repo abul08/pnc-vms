@@ -56,25 +56,26 @@ export default function CandidateTVView({
 
     return (
         <div className="flex flex-col h-full gap-5 w-full min-h-0 select-none">
-
+            <div className="text-3xl font-semibold text-slate-300 flex tracking-wide items-center gap-2 justify-center tabular-nums shrink-0">
+                TURNOUT LIVE UPDATES
+                <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
+                </span>
+            </div>
             {/* ── Overall Turnout Banner ── */}
             <div className="shrink-0 flex items-center gap-8 px-8 py-5 rounded-3xl bg-gradient-to-r from-slate-900 to-slate-800 border border-white/10">
                 {/* Live pulse */}
-                <div className="flex items-center gap-3 shrink-0">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-400" />
-                    </span>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Live</span>
-                </div>
+
+
 
                 {/* Numbers */}
                 <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-black tabular-nums text-white tracking-tight">
+                    <span className="text-5xl font-semibold tabular-nums text-white tracking-tight">
                         <AnimatedNumber value={votedCount} />
                     </span>
                     <span className="text-slate-600 font-bold text-xl">/</span>
-                    <span className="text-2xl font-bold tabular-nums text-slate-400">
+                    <span className="text-2xl font-semibold tabular-nums text-slate-400">
                         <AnimatedNumber value={totalCount} />
                     </span>
                 </div>
@@ -88,7 +89,7 @@ export default function CandidateTVView({
                 </div>
 
                 {/* Percentage */}
-                <span className="text-4xl font-black text-emerald-400 tabular-nums shrink-0">{turnoutPct}<span className="text-2xl opacity-60">%</span></span>
+                <span className="text-4xl font-semibold text-emerald-400 tabular-nums shrink-0">{turnoutPct}<span className="text-2xl opacity-60">%</span></span>
             </div>
 
             {/* ── Box Stats Row ── */}
@@ -108,13 +109,13 @@ export default function CandidateTVView({
                             />
                             <div className="relative px-5 py-4 flex items-center justify-between gap-4">
                                 <div className="min-w-0">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate mb-1">{box.label}</p>
-                                    <p className="text-lg font-black tabular-nums text-white">
+                                    <p className="text-[16px] font-semibold uppercase tracking-widest text-slate-500 truncate mb-1">{box.label}</p>
+                                    <p className="text-lg font-semibold text-slate-600 tabular-nums text-white">
                                         <AnimatedNumber value={box.voted} />
                                         <span className="text-slate-600 font-semibold text-sm ml-1">/ {box.total.toLocaleString()}</span>
                                     </p>
                                 </div>
-                                <span className="text-3xl font-black text-primary tabular-nums shrink-0">{pct}<span className="text-lg opacity-60">%</span></span>
+                                <span className="text-3xl font-semibold text-primary tabular-nums shrink-0">{pct}<span className="text-lg opacity-60">%</span></span>
                             </div>
                         </div>
                     );
@@ -128,7 +129,7 @@ export default function CandidateTVView({
                         {/* Group label */}
                         <div className="shrink-0 px-1 flex items-center gap-3">
                             <div className="w-1 h-4 rounded-full bg-primary" />
-                            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500">{group.title}</p>
+                            <p className="text-[18px] font-semibold uppercase text-slate-500">{group.title}</p>
                         </div>
 
                         <div
@@ -143,7 +144,7 @@ export default function CandidateTVView({
                                 >
                                     {/* Header */}
                                     <div className="shrink-0 px-6 py-3 border-b border-white/8">
-                                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">{category.title}</p>
+                                        <p className="text-[18px] font-semibold uppercase text-slate-500">{category.title}</p>
                                     </div>
 
                                     {/* Candidates */}
@@ -164,13 +165,13 @@ export default function CandidateTVView({
                                                             <span className="shrink-0 w-8 h-8 xl:w-9 xl:h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs xl:text-sm font-black text-slate-400">
                                                                 {candidate.number}
                                                             </span>
-                                                            <p className="font-bold text-white text-sm xl:text-base truncate">{candidate.name}</p>
+                                                            <p className="font-semibold text-slate-300 text-sm xl:text-base truncate">{candidate.name}</p>
                                                         </div>
                                                         <div className="flex items-baseline gap-2 shrink-0">
-                                                            <span className="text-2xl xl:text-3xl font-black tabular-nums text-white tracking-tight">
+                                                            <span className="text-2xl xl:text-3xl font-semibold tabular-nums text-slate-300 tracking-tight">
                                                                 <AnimatedNumber value={votes} />
                                                             </span>
-                                                            <span className="text-xs xl:text-sm font-black text-primary">{pct}%</span>
+                                                            <span className="text-xs xl:text-sm font-semibold text-primary">{pct}%</span>
                                                         </div>
                                                     </div>
                                                     {/* thin progress line at bottom */}
