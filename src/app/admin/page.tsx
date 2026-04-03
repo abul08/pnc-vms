@@ -3,7 +3,7 @@ import { getUser, getProfile } from "@/utils/supabase/queries";
 import { redirect } from "next/navigation";
 import { UploadExcelForm } from "@/components/AdminForms";
 import VoterBoxLookup from "@/components/VoterBoxLookup";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Tv } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { AdminNavCards } from "@/components/admin/AdminNavCards";
@@ -95,6 +95,12 @@ export default async function AdminDashboard() {
                     <h1 className="text-3xl font-bold text-slate-900">Admin Dashboard</h1>
                     <p className="text-slate-500 mt-1">Welcome back, {profile?.full_name ?? "Admin"}.</p>
                 </div>
+                <Link href="/admin/tv" target="_blank">
+                    <Button variant="outline" className="gap-2 h-10 px-5 rounded-xl border-slate-200 text-slate-600 hover:text-primary hover:border-primary/30 hover:bg-primary/5 font-semibold text-sm shadow-sm">
+                        <Tv className="w-4 h-4" />
+                        TV Display
+                    </Button>
+                </Link>
             </div>
 
             {/* Box Lookup */}

@@ -11,7 +11,7 @@ export default async function Navbar() {
     const headerList = await headers();
     const pathname = headerList.get('x-pathname');
 
-    if (pathname === '/login') return null;
+    if (pathname === '/login' || pathname === '/admin/tv') return null;
 
     const supabase = await createClient();
     const user = await getUser(supabase);
@@ -109,7 +109,7 @@ export default async function Navbar() {
             </header>
 
             {/* Bottom tab bar — mobile only */}
-            {user && role && role !== 'spectator' && <MobileNav role={role} />}
+            {user && role && role !== 'spectator' && pathname !== '/admin/tv' && <MobileNav role={role} />}
         </>
     );
 }
